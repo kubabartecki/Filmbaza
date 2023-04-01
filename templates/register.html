@@ -9,7 +9,6 @@
   <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.2.3/dist/js/bootstrap.bundle.min.js"></script>
 </head>
 
-
 <body style="background-color: lightgrey;">
 
   <div class="text-center" style="margin-top: 20vh; margin-left: 40vw; margin-right: 40vw;">
@@ -28,9 +27,15 @@
       </div>
 
       <div class="mb-3 mt-3" style="width: 20vw;">
+        <label for="username">Nazwa użytkownika:</label>
+        <input type="username" class="form-control" id="username" placeholder="Nazwa użytkownika" name="username">
+      </div>
+
+      <div class="mb-3 mt-3" style="width: 20vw;">
         <label for="email">Email:</label>
         <input type="email" class="form-control" id="email" placeholder="Email" name="email">
       </div>
+
       <div class="mb-3" style="width: 20vw;">
         <label for="password">Hasło:</label>
         <input type="password" class="form-control" id="password" placeholder="Hasło" name="password">
@@ -42,9 +47,6 @@
         <button type="button" class="btn btn-primary">Logowanie</button>
       </a>
     </form>
-
   </div>
-
 </body>
-
 </html>
