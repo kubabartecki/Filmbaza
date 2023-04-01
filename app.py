@@ -1,4 +1,4 @@
-from flask import Flask, render_template, redirect
+from flask import Flask, render_template, redirect, request
 
 app = Flask(__name__)
 
@@ -10,12 +10,26 @@ def default():
 
 @app.route("/register", methods=["GET", "POST"])
 def register():
-    return render_template("register.html")
+    if request.method == "POST":
+        name = request.form.get("name")
+        surname = request.form.get("surname")
+        email = request.form.get("email")
+        password = request.form.get("password")
+        print(f"{name} {surname} {email} {password}")
+        return redirect("/")
+    else:
+        return render_template("register.html")
 
 
 @app.route("/main_page", methods=["GET", "POST"])
 def main_page():
-    return render_template("main_page.html", films=[], logged_user=[])
+    if request.method == "POST":
+        email = request.form.get("email")
+        password = request.form.get("password")
+        print(f"{email} {password}")
+        return render_template("main_page.html", films=[], logged_user=[])
+    else:
+        return redirect("/")
 
 
 if __name__ == "__main__":
