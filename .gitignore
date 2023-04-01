@@ -1,3 +1,9 @@
+# Flask
+*.env
+
+
+#########################################
+# Initial template to edit later
 # Compiled class file
 *.class
 
