@@ -12,38 +12,39 @@
 
 <body style="background-color: lightgrey;">
 
-<div class="text-center" style="margin-top: 20vh; margin-left: 40vw; margin-right: 40vw;">
-  <h2>Zarejestruj się</h2>
-  
-  <form action="/register" method="post"> <!-- plik z backendu -->
+  <div class="text-center" style="margin-top: 20vh; margin-left: 40vw; margin-right: 40vw;">
+    <h2>Zarejestruj się</h2>
 
-    <div class="mb-3 mt-3" style="width: 20vw;">
+    <form action="/register" method="post"> <!-- plik z backendu -->
+
+      <div class="mb-3 mt-3" style="width: 20vw;">
         <label for="name">Imie:</label>
         <input type="name" class="form-control" id="name" placeholder="Imie" name="name">
-    </div>
+      </div>
 
-    <div class="mb-3 mt-3" style="width: 20vw;">
+      <div class="mb-3 mt-3" style="width: 20vw;">
         <label for="surname">Nazwisko:</label>
         <input type="surname" class="form-control" id="surname" placeholder="Nazwisko" name="surname">
-    </div>
+      </div>
 
-    <div class="mb-3 mt-3" style="width: 20vw;">
-      <label for="email">Email:</label>
-      <input type="email" class="form-control" id="email" placeholder="Email" name="email">
-    </div>
-    <div class="mb-3" style="width: 20vw;">
-      <label for="password">Hasło:</label>
-      <input type="password" class="form-control" id="password" placeholder="Hasło" name="password">
-    </div>
+      <div class="mb-3 mt-3" style="width: 20vw;">
+        <label for="email">Email:</label>
+        <input type="email" class="form-control" id="email" placeholder="Email" name="email">
+      </div>
+      <div class="mb-3" style="width: 20vw;">
+        <label for="password">Hasło:</label>
+        <input type="password" class="form-control" id="password" placeholder="Hasło" name="password">
+      </div>
 
-    <button type="submit" class="btn btn-primary">Zarejestruj</button>
-    
-    <a href="/login_site">
+      <button type="submit" class="btn btn-primary">Zarejestruj</button>
+
+      <a href="/">
         <button type="button" class="btn btn-primary">Logowanie</button>
-    </a> 
-  </form>
+      </a>
+    </form>
 
-</div>
+  </div>
 
 </body>
+
 </html>

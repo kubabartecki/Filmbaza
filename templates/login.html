@@ -12,30 +12,31 @@
 
 <body style="background-color: lightgrey;">
 
-<div class="text-center" style="margin-top: 30vh; margin-left: 40vw; margin-right: 40vw;">
-  <h2>Zaloguj się</h2>
+  <div class="text-center" style="margin-top: 30vh; margin-left: 40vw; margin-right: 40vw;">
+    <h2>Zaloguj się</h2>
 
-  <form action="/login" method="post"> <!-- plik z backendu -->
+    <form action="/main_page" method="post"> <!-- plik z backendu -->
 
-    <div class="mb-3 mt-3" style="width: 20vw;">
-      <label for="email">Email:</label>
-      <input type="email" class="form-control" id="email" placeholder="Email" name="email">
-    </div>
+      <div class="mb-3 mt-3" style="width: 20vw;">
+        <label for="email">Email:</label>
+        <input type="email" class="form-control" id="email" placeholder="Email" name="email">
+      </div>
 
-    <div class="mb-3 mt-3" style="width: 20vw;">
-      <label for="email">Haslo:</label>
-      <input type="email" class="form-control" id="email" placeholder="Email" name="email">
-    </div>
+      <div class="mb-3 mt-3" style="width: 20vw;">
+        <label for="email">Haslo:</label>
+        <input type="email" class="form-control" id="email" placeholder="Email" name="email">
+      </div>
 
-    <button type="submit" class="btn btn-primary">Zaloguj</button>
-    
-    <a href="/register_site">
-      <button type="button" class="btn btn-primary">Rejestracja</button>
-    </a> 
+      <button type="submit" class="btn btn-primary">Zaloguj</button>
 
-  </form>
+      <a href="/register">
+        <button type="button" class="btn btn-primary">Rejestracja</button>
+      </a>
 
-</div>
+    </form>
+
+  </div>
 
 </body>
+
 </html>
