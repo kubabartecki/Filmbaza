@@ -1,7 +1,7 @@
+import psycopg2
+from config import DATABASE_URL
 from flask import Flask, render_template, redirect, request
 
-from config import DATABASE_URL
-import psycopg2
 
 app = Flask(__name__)
 url = DATABASE_URL
@@ -40,14 +40,14 @@ def main_page():
         if not request.form.get("email"):
             return redirect("/")
         email = request.form.get("email")
-        #if not request.form.get("password"):
-            #return redirect("/")
-        #password = request.form.get("password")
-        #print(f"{email} {password}")
+        if not request.form.get("password"):
+            return redirect("/")
+        password = request.form.get("password")
+        print(f"{email} {password}")
         return render_template("main_page.html", films=[], logged_user=[])
     else:
         return redirect("/")
-    
+
 
 if __name__ == "__main__":
     app.run()
