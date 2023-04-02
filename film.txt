@@ -1,0 +1,1 @@
+INSERT INTO Film (title, poster, director, year, description) VALUES (('LEON ZAWODOWIEC', 'https://fwcdn.pl/fpo/06/71/671/8021401.6.jpg', '', 1994, 'P³atny morderca ratuje dwunastoletni¹ dziewczynkê, której rodzina zosta³a zabita przez skorumpowanych policjantów.'));

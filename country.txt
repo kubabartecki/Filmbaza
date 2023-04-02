@@ -1,0 +1,2 @@
+INSERT INTO Country (name) VALUES (Francja);
+INSERT INTO Country (name) VALUES (USA);

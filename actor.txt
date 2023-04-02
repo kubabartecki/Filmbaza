@@ -1,0 +1,9 @@
+INSERT INTO Actor (name, year_of_birth, year_of_death)  VALUES ('Keith A. Glascoe', '1962', '2001');
+INSERT INTO Actor (name, year_of_birth, photo)  VALUES ('Jean Reno', '1948', 'https://fwcdn.pl/ppo/00/88/88/449736.2.jpg');
+INSERT INTO Actor (name, photo)  VALUES ('Don Creech', 'https://fwcdn.pl/ppo/50/36/5036/320685.1.jpg');
+INSERT INTO Actor (name)  VALUES ('Randolph Scott',);
+INSERT INTO Actor (name, year_of_birth, year_of_death, photo)  VALUES ('Danny Aiello', '1933', '2019', 'https://fwcdn.pl/ppo/02/26/226/450960.2.jpg');
+INSERT INTO Actor (name, year_of_birth, photo)  VALUES ('Peter Appel', '1959', 'https://fwcdn.pl/ppo/34/59/3459/365936.1.jpg');
+INSERT INTO Actor (name, year_of_birth, photo)  VALUES ('Natalie Portman', '1981', 'https://fwcdn.pl/ppo/03/16/316/449937.2.jpg');
+INSERT INTO Actor (name)  VALUES ('Willie One Blood',);
+INSERT INTO Actor (name, year_of_birth, photo)  VALUES ('Gary Oldman', '1958', 'https://fwcdn.pl/ppo/00/76/76/449688.2.jpg');

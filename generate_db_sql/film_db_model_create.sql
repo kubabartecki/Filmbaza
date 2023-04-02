@@ -1,21 +1,20 @@
 -- Created by Vertabelo (http://vertabelo.com)
--- Last modification date: 2023-04-01 11:14:51.229
+-- Last modification date: 2023-04-02 18:12:18.258
 
 -- tables
 -- Table: Actor
 CREATE TABLE Actor (
-    ID_ACTOR int  NOT NULL,
-    name varchar(30)  NOT NULL,
-    surname varchar(30)  NOT NULL,
+    ID_ACTOR serial  NOT NULL,
+    name varchar(50)  NOT NULL,
     year_of_birth int  NULL,
     year_of_death int  NULL,
-    photo bytea  NULL,
+    photo varchar(200)  NULL,
     CONSTRAINT Actor_pk PRIMARY KEY (ID_ACTOR)
 );
 
 -- Table: Catalog
 CREATE TABLE Catalog (
-    ID_CATALOG int  NOT NULL,
+    ID_CATALOG serial  NOT NULL,
     User_ID_USER int  NOT NULL,
     title varchar(100)  NOT NULL,
     CONSTRAINT Catalog_pk PRIMARY KEY (ID_CATALOG)
@@ -23,7 +22,7 @@ CREATE TABLE Catalog (
 
 -- Table: Category
 CREATE TABLE Category (
-    ID_CATEGORY int  NOT NULL,
+    ID_CATEGORY serial  NOT NULL,
     name varchar(50)  NOT NULL,
     CONSTRAINT Category_pk PRIMARY KEY (ID_CATEGORY)
 );
@@ -32,20 +31,19 @@ CREATE INDEX Category_idx_name on Category USING btree (name ASC);
 
 -- Table: Country
 CREATE TABLE Country (
-    ID_COUNTRY int  NOT NULL,
+    ID_COUNTRY serial  NOT NULL,
     name varchar(20)  NOT NULL,
     CONSTRAINT Country_pk PRIMARY KEY (ID_COUNTRY)
 );
 
 -- Table: Film
 CREATE TABLE Film (
-    ID_FILM int  NOT NULL,
+    ID_FILM serial  NOT NULL,
     title varchar(80)  NOT NULL,
-    poster bytea  NOT NULL,
+    poster varchar(200)  NOT NULL,
     director varchar(50)  NOT NULL,
     year int  NOT NULL,
     description text  NOT NULL,
-    Country_ID_COUNTRY int  NOT NULL,
     CONSTRAINT Film_pk PRIMARY KEY (ID_FILM)
 );
 
@@ -53,15 +51,16 @@ CREATE INDEX Film_idx_title on Film USING btree (title ASC);
 
 -- Table: Film_Actor
 CREATE TABLE Film_Actor (
-    ID_FILM_ACTOR int  NOT NULL,
+    ID_FILM_ACTOR serial  NOT NULL,
     Film_ID_FILM int  NOT NULL,
     Actor_ID_ACTOR int  NOT NULL,
+    role varchar(50)  NOT NULL,
     CONSTRAINT Film_Actor_pk PRIMARY KEY (ID_FILM_ACTOR)
 );
 
 -- Table: Film_Catalog
 CREATE TABLE Film_Catalog (
-    ID_FILM_CATALOG int  NOT NULL,
+    ID_FILM_CATALOG serial  NOT NULL,
     Film_ID_FILM int  NOT NULL,
     Catalog_ID_CATALOG int  NOT NULL,
     CONSTRAINT Film_Catalog_pk PRIMARY KEY (ID_FILM_CATALOG)
@@ -69,22 +68,30 @@ CREATE TABLE Film_Catalog (
 
 -- Table: Film_Category
 CREATE TABLE Film_Category (
-    ID_FILM_CATEGORY int  NOT NULL,
+    ID_FILM_CATEGORY serial  NOT NULL,
     Film_ID_FILM int  NOT NULL,
     Category_ID_CATEGORY int  NOT NULL,
     CONSTRAINT Film_Category_pk PRIMARY KEY (ID_FILM_CATEGORY)
 );
 
+-- Table: Film_Country
+CREATE TABLE Film_Country (
+    ID_FILM_COUNTRY serial  NOT NULL,
+    Film_ID_FILM int  NOT NULL,
+    Country_ID_COUNTRY int  NOT NULL,
+    CONSTRAINT Film_Country_pk PRIMARY KEY (ID_FILM_COUNTRY)
+);
+
 -- Table: Rank
 CREATE TABLE Rank (
-    ID_RANK int  NOT NULL,
+    ID_RANK serial  NOT NULL,
     name varchar(30)  NOT NULL,
     CONSTRAINT Rank_pk PRIMARY KEY (ID_RANK)
 );
 
 -- Table: Review
 CREATE TABLE Review (
-    ID_REVIEW int  NOT NULL,
+    ID_REVIEW serial  NOT NULL,
     description text  NULL,
     stars int  NOT NULL,
     User_ID_USER int  NOT NULL,
@@ -94,7 +101,7 @@ CREATE TABLE Review (
 
 -- Table: User
 CREATE TABLE "User" (
-    ID_USER int  NOT NULL,
+    ID_USER serial  NOT NULL,
     mail varchar(30)  NOT NULL,
     password varchar(50)  NOT NULL,
     username varchar(30)  NOT NULL,
@@ -106,7 +113,7 @@ CREATE TABLE "User" (
 
 -- Table: Watched
 CREATE TABLE Watched (
-    ID_WATCHED int  NOT NULL,
+    ID_WATCHED serial  NOT NULL,
     User_ID_USER int  NOT NULL,
     Film_ID_FILM int  NOT NULL,
     CONSTRAINT Watched_pk PRIMARY KEY (ID_WATCHED)
@@ -169,10 +176,18 @@ ALTER TABLE Film_Category ADD CONSTRAINT Film_Category_Film
     INITIALLY IMMEDIATE
 ;
 
--- Reference: Film_Country (table: Film)
-ALTER TABLE Film ADD CONSTRAINT Film_Country
+-- Reference: Film_Country_Country (table: Film_Country)
+ALTER TABLE Film_Country ADD CONSTRAINT Film_Country_Country
     FOREIGN KEY (Country_ID_COUNTRY)
     REFERENCES Country (ID_COUNTRY)  
+    NOT DEFERRABLE 
+    INITIALLY IMMEDIATE
+;
+
+-- Reference: Film_Country_Film (table: Film_Country)
+ALTER TABLE Film_Country ADD CONSTRAINT Film_Country_Film
+    FOREIGN KEY (Film_ID_FILM)
+    REFERENCES Film (ID_FILM)  
     NOT DEFERRABLE 
     INITIALLY IMMEDIATE
 ;
