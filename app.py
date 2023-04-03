@@ -25,10 +25,13 @@ def register():
         if not request.form.get("email"):
             return redirect("/register")
         email = request.form.get("email")
+        if not request.form.get("username"):
+            return redirect("/register")
+        username = request.form.get("username")
         if not request.form.get("password"):
             return redirect("/register")
         password = request.form.get("password")
-        print(f"{name} {surname} {email} {password}")
+        print(f"{name} {surname} {email} {password} {username}")
         return redirect("/")
     else:
         return render_template("register.html")
