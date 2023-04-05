@@ -32,13 +32,27 @@ def register():
             return redirect("/register")
         password = request.form.get("password")
         print(f"{name} {surname} {username} {email} {password}")
+
         connection = psycopg2.connect(url)
         cursor = connection.cursor()
-
-        # Korzystanie z bazy
-
+        #Brak blokowania możliwości rejestracji jeżeli email jest w bazie!
+        #Tu te długości to są jeszcze do dogadania
+        max_password_length = 10 
+        salt_length = 8
+        hashed_password = generate_password_hash(password, salt_length=salt_length)[:max_password_length]
+        cursor.execute('INSERT INTO \"User\" (mail, password, username, name, surname, rank_id_rank)' 
+                       'VALUES(%s,%s,%s,%s,%s,%s)',
+                       [email,hashed_password,username,name,surname,1])
+        
+        #Sprawdzanie całej bazy w Userze
+        cursor.execute("SELECT* FROM \"User\"")
+        ################################
+        connection.commit()
+        test = cursor.fetchall()
+        print(test)
         cursor.close()
         connection.close()
+        
 
         return redirect("/")
     else:
