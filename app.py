@@ -17,7 +17,6 @@ def default():
  
 
 @app.route("/register", methods=["GET", "POST"])
-  
 def register():
     if request.method == "POST":
         if not request.form.get("name"):
@@ -58,9 +57,8 @@ def register():
             print(message)
             return redirect("/register")
         else:
-            max_password_length = 15
             salt_length = 12
-            hashed_password = generate_password_hash(password, salt_length=salt_length, method = 'sha256')[:max_password_length]
+            hashed_password = generate_password_hash(password, salt_length=salt_length, method='sha256')
             cursor.execute('INSERT INTO \"User\" (mail, password, username, name, surname, rank_id_rank)' 
                         'VALUES(%s,%s,%s,%s,%s,%s)',
                         [email,hashed_password,username,name,surname,1])
@@ -90,7 +88,6 @@ def main_page():
         if not request.form.get("password"):
             return redirect("/")
         password = request.form.get("password")
-
         connection = psycopg2.connect(url)
         cursor = connection.cursor()
         cursor.execute("SELECT \"User\".id_user, \"User\".password FROM \"User\" WHERE \"User\".mail = %s", [email])
@@ -102,7 +99,7 @@ def main_page():
             hash_from_db = records[0][1]
         else:
             return redirect("/")
-        if check_password_hash(pwhash=hash_from_db, password=password):
+        if check_password_hash(hash_from_db, password):
             # Tu tez bedzie przypisanie sesji do konkretnego id usera
             # tu bedzie wyciagniecie informacji o filmach z bazy
             return render_template("main_page.html", films=[], logged_user=[])
