@@ -2,7 +2,7 @@ import psycopg2
 from config import DATABASE_URL
 from flask import Flask, render_template, redirect, request
 from werkzeug.security import check_password_hash, generate_password_hash
-import re
+from helpers import is_valid_mail
 
 
 app = Flask(__name__)
@@ -32,11 +32,7 @@ def register():
             return redirect("/register")
         email = request.form.get("email")
         if not request.form.get("password"):
-            return redirect("/register")
-        def is_valid_mail(mail):
-            pattern = r"^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$"
-            match = re.match(pattern, email)
-            return match is not None   
+            return redirect("/register")  
         if is_valid_mail(email):
             print ("Adres email jest poprawny")
         else:
@@ -50,7 +46,6 @@ def register():
         cursor.execute('SELECT * FROM \"User\" WHERE mail = %s', [email])
         email_check = cursor.fetchone()
        
-        
         if email_check:
             message = "Podany adres jest juz zarejestrowany. Sprobuj zarejestrowac sie z innym adresem"
             #return render_template('register.html', message=message) -> Będzie możliwe wyświetlanie komunikatu jak front doda możliwość wyświetlenia message
@@ -72,7 +67,6 @@ def register():
             print(test)
             cursor.close()
             connection.close()
-        
 
         return redirect("/")
     else:
