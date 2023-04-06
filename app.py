@@ -1,23 +1,27 @@
 import psycopg2
 from config import DATABASE_URL
-from flask import Flask, render_template, redirect, request
+from flask import Flask, session, render_template, redirect, request
+from flask_session import Session
 from werkzeug.security import check_password_hash, generate_password_hash
-from helpers import is_valid_mail
+from helpers import is_valid_mail, login_required
 
 
 app = Flask(__name__)
+app.config["TEMPLATES_AUTO_RELOAD"] = True
+app.config["SESSION_PERMANENT"] = False
+app.config['SESSION_TYPE'] = 'filesystem'
+Session(app)
 url = DATABASE_URL
 
-  
 
 @app.route("/", methods=["GET", "POST"])
 def default():
+    session.clear()
     return render_template("login.html")
-
- 
 
 @app.route("/register", methods=["GET", "POST"]) 
 def register():
+    session.clear()
     if request.method == "POST":
         if not request.form.get("name"):
             return redirect("/register")
@@ -55,8 +59,8 @@ def register():
             salt_length = 12
             hashed_password = generate_password_hash(password, salt_length=salt_length, method = 'sha256')
             cursor.execute('INSERT INTO \"User\" (mail, password, username, name, surname, rank_id_rank)' 
-                        'VALUES(%s,%s,%s,%s,%s,%s)',
-                        [email,hashed_password,username,name,surname,1])
+                        'VALUES(%s, %s, %s, %s, %s, %s)',
+                        [email, hashed_password, username, name, surname, 1])
         
             #Sprawdzanie całej bazy w Userze
             cursor.execute("SELECT* FROM \"User\"")
@@ -82,7 +86,6 @@ def main_page():
         if not request.form.get("password"):
             return redirect("/")
         password = request.form.get("password")
-
         connection = psycopg2.connect(url)
         cursor = connection.cursor()
         cursor.execute("SELECT \"User\".id_user, \"User\".password FROM \"User\" WHERE \"User\".mail = %s", [email])
@@ -95,15 +98,18 @@ def main_page():
         else:
             return redirect("/")
         if check_password_hash(hash_from_db, password):
-            # Tu tez bedzie przypisanie sesji do konkretnego id usera
-            # tu bedzie wyciagniecie informacji o filmach z bazy
-            return render_template("main_page.html", films=[], logged_user=[])
+            session["user_id"] = user_id
+            return redirect("/home")
         else:
             return redirect("/")
-        
     else:
         return redirect("/")
 
+
+@app.route("/home", methods=["GET", "POST"])
+@login_required
+def home():
+    return render_template("main_page.html", films=[], logged_user=[])
 
 if __name__ == "__main__":
     app.run()

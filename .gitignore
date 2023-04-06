@@ -4,7 +4,7 @@ config.py
 
 # Flask
 *.env
-
+/flask_session
 
 #########################################
 # Initial template to edit later
