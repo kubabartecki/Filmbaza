@@ -2,18 +2,22 @@ import psycopg2
 from config import DATABASE_URL
 from flask import Flask, render_template, redirect, request
 from werkzeug.security import check_password_hash, generate_password_hash
+import re
+
 
 app = Flask(__name__)
 url = DATABASE_URL
 
-
+  
 
 @app.route("/", methods=["GET", "POST"])
 def default():
     return render_template("login.html")
 
+ 
 
 @app.route("/register", methods=["GET", "POST"])
+  
 def register():
     if request.method == "POST":
         if not request.form.get("name"):
@@ -30,28 +34,46 @@ def register():
         email = request.form.get("email")
         if not request.form.get("password"):
             return redirect("/register")
+        def is_valid_mail(mail):
+            pattern = r"^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$"
+            match = re.match(pattern, email)
+            return match is not None   
+        if is_valid_mail(email):
+            print ("Adres email jest poprawny")
+        else:
+            print("Adres email jest niepoprawny")
+            return redirect("/register")
         password = request.form.get("password")
         print(f"{name} {surname} {username} {email} {password}")
-
+        
         connection = psycopg2.connect(url)
         cursor = connection.cursor()
-        #Brak blokowania możliwości rejestracji jeżeli email jest w bazie!
-        #Tu te długości to są jeszcze do dogadania
-        max_password_length = 10 
-        salt_length = 8
-        hashed_password = generate_password_hash(password, salt_length=salt_length)[:max_password_length]
-        cursor.execute('INSERT INTO \"User\" (mail, password, username, name, surname, rank_id_rank)' 
-                       'VALUES(%s,%s,%s,%s,%s,%s)',
-                       [email,hashed_password,username,name,surname,1])
+        cursor.execute('SELECT * FROM \"User\" WHERE mail = %s', [email])
+        email_check = cursor.fetchone()
+       
         
-        #Sprawdzanie całej bazy w Userze
-        cursor.execute("SELECT* FROM \"User\"")
-        ################################
-        connection.commit()
-        test = cursor.fetchall()
-        print(test)
-        cursor.close()
-        connection.close()
+        if email_check:
+            message = "Podany adres jest juz zarejestrowany. Sprobuj zarejestrowac sie z innym adresem"
+            #return render_template('register.html', message=message) -> Będzie możliwe wyświetlanie komunikatu jak front doda możliwość wyświetlenia message
+            print(message)
+            return redirect("/register")
+        else:
+            max_password_length = 15
+            salt_length = 12
+            hashed_password = generate_password_hash(password, salt_length=salt_length, method = 'sha256')[:max_password_length]
+            cursor.execute('INSERT INTO \"User\" (mail, password, username, name, surname, rank_id_rank)' 
+                        'VALUES(%s,%s,%s,%s,%s,%s)',
+                        [email,hashed_password,username,name,surname,1])
+        
+            #Sprawdzanie całej bazy w Userze
+            cursor.execute("SELECT* FROM \"User\"")
+            ################################
+            connection.commit()
+            print("Uzytkowanik zostal pomyslnie zarejestrowany")
+            test = cursor.fetchall()
+            print(test)
+            cursor.close()
+            connection.close()
         
 
         return redirect("/")
