@@ -72,17 +72,21 @@ def main_page():
         connection = psycopg2.connect(url)
         cursor = connection.cursor()
         cursor.execute("SELECT \"User\".id_user, \"User\".password FROM \"User\" WHERE \"User\".mail = %s", [email])
-
-        # gdy cos bedzie dodane do bazy, to dodam tu wyciagniecie hasha
-        hash_from_db = 0 
-        if len(cursor.fetchall()) == 1 and check_password_hash(hash_from_db):
+        records = cursor.fetchall()
+        cursor.close()
+        connection.close()
+        if len(records) == 1:
+            user_id = records[0][0]
+            hash_from_db = records[0][1]
+        else:
+            return redirect("/")
+        if check_password_hash(pwhash=hash_from_db, password=password):
             # Tu tez bedzie przypisanie sesji do konkretnego id usera
             # tu bedzie wyciagniecie informacji o filmach z bazy
             return render_template("main_page.html", films=[], logged_user=[])
-        cursor.close()
-        connection.close()
-        print(f"{email} {password}")
-        return redirect("/")
+        else:
+            return redirect("/")
+        
     else:
         return redirect("/")
 
