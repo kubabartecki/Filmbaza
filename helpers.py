@@ -14,3 +14,21 @@ def login_required(f):
             return redirect("/")
         return f(*args, **kwargs)
     return decorated_function
+
+def get_rank_name(rank):
+    if rank == 1:
+        return "Początkujący"
+    elif rank == 2:
+        return "Młody filmowiec"
+    elif rank == 3:
+         return "Filmowiec"
+    elif rank == 4:
+         return "Filmomaniak"
+
+class logged_user():
+     def __init__(self, records):
+          self.username = records[0][3]
+          self.name = records[0][4]
+          self.surname = records[0][5]
+          self.rank = get_rank_name(records[0][6])
+          self.no_review = 0

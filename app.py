@@ -3,7 +3,7 @@ from config import DATABASE_URL
 from flask import Flask, session, render_template, redirect, request
 from flask_session import Session
 from werkzeug.security import check_password_hash, generate_password_hash
-from helpers import is_valid_mail, login_required
+from helpers import is_valid_mail, login_required, logged_user
 
 
 app = Flask(__name__)
@@ -109,7 +109,13 @@ def main_page():
 @app.route("/home", methods=["GET", "POST"])
 @login_required
 def home():
-    return render_template("main_page.html", films=[], logged_user=[])
+    connection = psycopg2.connect(url)
+    cursor = connection.cursor()
+    cursor.execute("SELECT * FROM \"User\" WHERE \"User\".id_user = %s", [session["user_id"]])
+    user_records = cursor.fetchall()
+    cursor.close()
+    connection.close()
+    return render_template("main_page.html", films=[], logged_user=logged_user(user_records))
 
 if __name__ == "__main__":
     app.run()
