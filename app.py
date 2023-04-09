@@ -113,9 +113,11 @@ def home():
     cursor = connection.cursor()
     cursor.execute("SELECT * FROM \"User\" WHERE \"User\".id_user = %s", [session["user_id"]])
     user_records = cursor.fetchall()
+    cursor.execute("SELECT COUNT(ID_REVIEW) FROM \"review\" INNER JOIN  \"User\" as u ON \"review\".User_ID_USER = u.ID_USER WHERE u.ID_USER = %s", [session["user_id"]])
+    user_reviews_count = cursor.fetchall()
     cursor.close()
     connection.close()
-    return render_template("main_page.html", films=[], logged_user=logged_user(user_records))
+    return render_template("main_page.html", films=[], logged_user=logged_user(user_records, user_reviews_count))
 
 if __name__ == "__main__":
     app.run()

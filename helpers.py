@@ -26,9 +26,9 @@ def get_rank_name(rank):
          return "Filmomaniak"
 
 class logged_user():
-     def __init__(self, records):
+     def __init__(self, records, user_reviews_count):
           self.username = records[0][3]
           self.name = records[0][4]
           self.surname = records[0][5]
           self.rank = get_rank_name(records[0][6])
-          self.no_review = 0
+          self.no_review = user_reviews_count[0][0]
