@@ -33,11 +33,23 @@ class logged_user():
           self.rank = get_rank_name(records[0][6])
           self.no_review = user_reviews_count[0][0]
           
-class film():
+class Film():
      def __init__(self, records):
-          self.title = 0
-          self.director = 0
-          self.year = 0
-          self.country = 0
-          self.description = 0
-          self.avg_grade = 0
+          self.id = records[0]
+          self.album = records[1]
+          self.title = records[2]
+          self.director = records[3]
+          self.year = records[4]
+          self.description = records[5]
+          self.country = records[6]
+          self.avg_grade = round(records[7], 2)
+     def Show(self):
+        print(f"ID: {self.id}")
+        print(f"album: {self.album}")
+        print(f"title: {self.title}")
+        print(f"director: {self.director}")
+        print(f"year: {self.year}")
+        print(f"country: {self.country}")
+        print(f"description: {self.description}")
+        print(f"avg_grade: {self.avg_grade}")
+          
