@@ -3,7 +3,7 @@ from config import DATABASE_URL
 from flask import Flask, session, render_template, redirect, request
 from flask_session import Session
 from werkzeug.security import check_password_hash, generate_password_hash
-from helpers import is_valid_mail, login_required, logged_user
+from helpers import is_valid_mail, login_required, logged_user, film
 
 
 app = Flask(__name__)
@@ -116,11 +116,14 @@ def home():
     cursor.execute("SELECT COUNT(ID_REVIEW) FROM \"review\" INNER JOIN  \"User\" as u ON \"review\".User_ID_USER = u.ID_USER WHERE u.ID_USER = %s", [session["user_id"]])
     user_reviews_count = cursor.fetchall()
     cursor.execute("SELECT film.ID_FILM, film.title, film.director, film.year, film.description, c.country_name, r.average_grade FROM (SELECT Film_ID_FILM,AVG(stars) AS average_grade FROM review GROUP BY Film_ID_FILM)r JOIN film ON film.ID_FILM=r.Film_ID_FILM, (SELECT STRING_AGG(c.name,', ') AS country_name FROM film_country as fc INNER JOIN film as f ON fc.Film_ID_FILM =f.ID_FILM INNER JOIN country as c ON fc.Country_ID_COUNTRY=c.ID_COUNTRY) c")
-    films = cursor.fetchall()
-    print(films)
+    films_records = cursor.fetchall()
+    print(films_records)
+    films = []
+    for row in films_records:
+        films.append(film(row))
     cursor.close()
     connection.close()
-    return render_template("main_page.html", films=[], logged_user=logged_user(user_records, user_reviews_count))
+    return render_template("main_page.html", films=films, logged_user=logged_user(user_records, user_reviews_count))
 
 if __name__ == "__main__":
     app.run()

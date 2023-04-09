@@ -32,3 +32,12 @@ class logged_user():
           self.surname = records[0][5]
           self.rank = get_rank_name(records[0][6])
           self.no_review = user_reviews_count[0][0]
+          
+class film():
+     def __init__(self, records):
+          self.title = 0
+          self.director = 0
+          self.year = 0
+          self.country = 0
+          self.description = 0
+          self.avg_grade = 0
