@@ -42,7 +42,11 @@ class Film():
           self.year = records[4]
           self.description = records[5]
           self.country = records[6]
-          self.avg_grade = round(records[7], 2)
+          if records[7] != None:
+              self.avg_grade = round(records[7], 2)
+          else:
+              self.avg_grade = records[7]
+
      def Show(self):
         print(f"ID: {self.id}")
         print(f"album: {self.album}")

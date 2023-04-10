@@ -115,14 +115,16 @@ def home():
     user_records = cursor.fetchall()
     cursor.execute("SELECT COUNT(ID_REVIEW) FROM \"review\" INNER JOIN  \"User\" as u ON \"review\".User_ID_USER = u.ID_USER WHERE u.ID_USER = %s", [session["user_id"]])
     user_reviews_count = cursor.fetchall()
-    cursor.execute("SELECT film.ID_FILM, film.poster, film.title, film.director, film.year, film.description, c.country_name, r.average_grade FROM (SELECT Film_ID_FILM,AVG(stars) AS average_grade FROM review GROUP BY Film_ID_FILM)r JOIN film ON film.ID_FILM=r.Film_ID_FILM, (SELECT STRING_AGG(c.name,', ') AS country_name FROM film_country as fc INNER JOIN film as f ON fc.Film_ID_FILM =f.ID_FILM INNER JOIN country as c ON fc.Country_ID_COUNTRY=c.ID_COUNTRY) c")
+    cursor.execute("SELECT film.ID_FILM, film.poster, film.title, film.director, film.year, film.description, STRING_AGG(country.name, ', ') countries, (SELECT AVG(review.stars) avg_grade FROM review WHERE review.film_id_film = film.id_film) FROM film_country JOIN film ON film.id_film = film_country.film_id_film JOIN country ON film_country.country_id_country = country.id_country GROUP BY film.id_film;")
     films_records = cursor.fetchall()
     films = []
     for row in films_records:
         films.append(Film(row))
     cursor.close()
     connection.close()
-    return render_template("main_page.html", films=films, logged_user=logged_user(user_records, user_reviews_count))
+    return render_template("main_page.html", films=films, logged_user=logged_user(user_records, user_reviews_count), search_string=None)
+
+
 
 if __name__ == "__main__":
     app.run()
