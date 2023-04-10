@@ -3,7 +3,7 @@ from config import DATABASE_URL
 from flask import Flask, session, render_template, redirect, request
 from flask_session import Session
 from werkzeug.security import check_password_hash, generate_password_hash
-from helpers import is_valid_mail, login_required, logged_user
+from helpers import is_valid_mail, login_required, logged_user, Film
 
 
 app = Flask(__name__)
@@ -113,9 +113,31 @@ def home():
     cursor = connection.cursor()
     cursor.execute("SELECT * FROM \"User\" WHERE \"User\".id_user = %s", [session["user_id"]])
     user_records = cursor.fetchall()
+    cursor.execute("SELECT COUNT(ID_REVIEW) FROM \"review\" INNER JOIN  \"User\" as u ON \"review\".User_ID_USER = u.ID_USER WHERE u.ID_USER = %s", [session["user_id"]])
+    user_reviews_count = cursor.fetchall()
+    # tutaj i w innych miejscach gdzie beda recenzje bedzie trzeba dodac czy przypadkiem ktos nie awansowal, a wtedy trzeba zmienic range
+    cursor.execute("SELECT film.ID_FILM, film.poster, film.title, film.director, film.year, film.description, STRING_AGG(country.name, ', ') countries, (SELECT AVG(review.stars) avg_grade FROM review WHERE review.film_id_film = film.id_film) FROM film_country JOIN film ON film.id_film = film_country.film_id_film JOIN country ON film_country.country_id_country = country.id_country GROUP BY film.id_film;")
+    films_records = cursor.fetchall()
+    search_string = request.args.get("search_string")
+    films = []
+    for row in films_records:
+        if search_string != None:
+            cursor.execute("SELECT c.name FROM category c JOIN film_category fc ON c.id_category = fc.category_id_category JOIN film f ON f.id_film = fc.film_id_film WHERE f.id_film = %s", [row[0]])
+            films.append(Film(row, cursor.fetchall()[0]))
+        else:
+            films.append(Film(row, [0]))
     cursor.close()
     connection.close()
-    return render_template("main_page.html", films=[], logged_user=logged_user(user_records))
+    return render_template("main_page.html", films=films, logged_user=logged_user(user_records, user_reviews_count), search_string=search_string)
 
+@app.route("/search", methods=["GET", "POST"])
+@login_required
+def search():
+    if request.method == "POST":
+        search_string = request.form.get("search_string")
+        if search_string != "":
+            return redirect(f"/home?search_string={search_string}")
+    return redirect("/home")
+    
 if __name__ == "__main__":
     app.run()
