@@ -122,7 +122,7 @@ def home():
         films.append(Film(row))
     cursor.close()
     connection.close()
-    return render_template("main_page.html", films=films, logged_user=logged_user(user_records, user_reviews_count), search_string=None)
+    return render_template("main_page.html", films=films, logged_user=logged_user(user_records, user_reviews_count), search_string=None, tags=[0])
 
 
 
