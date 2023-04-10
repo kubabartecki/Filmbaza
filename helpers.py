@@ -34,7 +34,7 @@ class logged_user():
           self.no_review = user_reviews_count[0][0]
           
 class Film():
-     def __init__(self, records):
+     def __init__(self, records, tags):
           self.id = records[0]
           self.album = records[1]
           self.title = records[2]
@@ -46,6 +46,7 @@ class Film():
               self.avg_grade = round(records[7], 2)
           else:
               self.avg_grade = records[7]
+          self.tags = tags
 
      def Show(self):
         print(f"ID: {self.id}")
@@ -56,4 +57,4 @@ class Film():
         print(f"country: {self.country}")
         print(f"description: {self.description}")
         print(f"avg_grade: {self.avg_grade}")
-          
+        print(f"tags: {self.tags}")
