@@ -138,6 +138,37 @@ def search():
         if search_string != "":
             return redirect(f"/home?search_string={search_string}")
     return redirect("/home")
-    
+
+@app.route("/film_page", methods=["GET", "POST"])
+@login_required
+def film_page():
+    movie_id = request.form.get('film_butt')
+    connection = psycopg2.connect(url)
+    cursor = connection.cursor()
+    cursor.execute("SELECT * FROM film WHERE id_film = %s", [movie_id])
+    film_id = cursor.fetchone()[0]
+    print(film_id)
+    print(request.args)
+    cursor.execute("SELECT film.poster, film.title, film.director, film.year, film.description, STRING_AGG(country.name, ', ') countries, (SELECT AVG(review.stars) avg_grade FROM review WHERE review.film_id_film = film.id_film) FROM film_country JOIN film ON film.id_film = film_country.film_id_film JOIN country ON film_country.country_id_country = country.id_country WHERE film.id_film = %s GROUP BY film.id_film", [film_id])
+    film_data = cursor.fetchone()
+    film_dict = {
+        'poster': film_data[0],
+        'title': film_data[1],
+        'director': film_data[2],
+        'year': film_data[3],
+        'description': film_data[4],
+        'countries': film_data[5],
+        'avg_grade': film_data[6]
+        }
+    print(film_dict)
+
+    return render_template('film_page.html', id=film_id, album=film_data[0], title=film_data[1], director=film_data[2], year=film_data[3], description=film_data[4], country=film_data[5])
+
+  
+
+
+
+
+
 if __name__ == "__main__":
     app.run()

@@ -24,6 +24,7 @@ def get_rank_name(rank):
          return "Filmowiec"
     elif rank == 4:
          return "Filmomaniak"
+    
 
 class logged_user():
      def __init__(self, records, user_reviews_count):
