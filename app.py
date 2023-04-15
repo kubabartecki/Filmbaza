@@ -7,7 +7,11 @@ from helpers import is_valid_mail, login_required, login_not_required, logged_us
 
 
 app = Flask(__name__)
+
+# Ensure templates are auto-reloaded
 app.config["TEMPLATES_AUTO_RELOAD"] = True
+
+# Configure session to use filesystem
 app.config["SESSION_PERMANENT"] = False
 app.config['SESSION_TYPE'] = 'filesystem'
 Session(app)
@@ -16,11 +20,13 @@ url = DATABASE_URL
 
 @app.before_first_request
 def clear_session():
+    """Ensuring that the user is not logged in."""
     session.clear()
 
 
 @app.after_request
 def after_request(response):
+    """Ensure responses aren't cached."""
     response.headers["Cache-Control"] = "no-cache, no-store, must-revalidate"
     response.headers["Expires"] = 0
     response.headers["Pragma"] = "no-cache"
@@ -30,6 +36,7 @@ def after_request(response):
 @app.route("/", methods=["GET", "POST"])
 @login_not_required
 def default():
+    """Default route for website. Renders login form and errors if any."""
     checker = request.args.get("checker", default="True", type=str) == "True"
     message = request.args.get("message", default="", type=str)
     return render_template("login.html", checker=checker, message=message)
@@ -38,6 +45,7 @@ def default():
 @app.route("/register", methods=["GET", "POST"])
 @login_not_required
 def register():
+    """Route called when user wants to register a new account."""
     session.clear()
     if request.method == "POST":
         if not request.form.get("name"):
@@ -97,6 +105,7 @@ def register():
 @app.route("/main_page", methods=["GET", "POST"])
 @login_not_required
 def main_page():
+    """Route to user login validation, handles errors within default route."""
     if request.method == "POST":
         if not request.form.get("email"):
             # return render_template("login.html", checker=False, message="Niepoprawny email!")
@@ -132,6 +141,7 @@ def main_page():
 @app.route("/home", methods=["GET", "POST"])
 @login_required
 def home():
+    """Main page of the website."""
     connection = psycopg2.connect(url)
     cursor = connection.cursor()
     cursor.execute(
@@ -160,6 +170,7 @@ def home():
 @app.route("/search", methods=["GET", "POST"])
 @login_required
 def search():
+    """Route used to search for movies, redirects to home page with search_string appended as a query string parameter."""
     if request.method == "POST":
         search_string = request.form.get("search_string")
         if search_string != "":
@@ -170,6 +181,7 @@ def search():
 @app.route("/film_page", methods=["GET", "POST"])
 @login_required
 def film_page():
+    """Route used to display details about a specific movie."""
     movie_id = request.form.get('film_butt')
     connection = psycopg2.connect(url)
     cursor = connection.cursor()
