@@ -4,12 +4,14 @@ from functools import wraps
 
 
 def is_valid_mail(mail):
+    """The function checks if the email address is valid."""
     pattern = r"^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$"
     match = re.match(pattern, mail)
     return match is not None
 
 
 def login_required(f):
+    """Decorator function that checks if a user is logged in. If not, the function redirects to the login page."""
     @wraps(f)
     def decorated_function(*args, **kwargs):
         if session.get("user_id") is None:
@@ -19,6 +21,7 @@ def login_required(f):
 
 
 def login_not_required(f):
+    """Decorator function that checks if a user is logged in. If so, the function redirects to the home page."""
     @wraps(f)
     def decorated_function(*args, **kwargs):
         if session.get("user_id") is None:
@@ -29,6 +32,7 @@ def login_not_required(f):
 
 
 def get_rank_name(rank):
+    """The function returns the string equivalent of rank."""
     if rank == 1:
         return "Początkujący"
     elif rank == 2:
@@ -40,6 +44,8 @@ def get_rank_name(rank):
 
 
 class logged_user():
+    """Class used to improve code readability and to make it easier to pass values about logged user to the frontend."""
+
     def __init__(self, records, user_reviews_count):
         self.username = records[0][3]
         self.name = records[0][4]
@@ -49,6 +55,8 @@ class logged_user():
 
 
 class Film():
+    """Class used to improve code readability and to make it easier to pass values about specific film to the frontend."""
+
     def __init__(self, records, tags):
         self.id = records[0]
         self.album = records[1]
@@ -64,6 +72,7 @@ class Film():
         self.tags = tags
 
     def Show(self):
+        """The function used for the debugging process."""
         print(f"ID: {self.id}")
         print(f"album: {self.album}")
         print(f"title: {self.title}")
