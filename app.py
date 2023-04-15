@@ -170,7 +170,7 @@ def film_page():
         'avg_grade': film_data[6]
     }
     print(film_dict)
-    return render_template('film_page.html', id=film_id, album=film_data[0], title=film_data[1], director=film_data[2], year=film_data[3], description=film_data[4], country=film_data[5])
+    return render_template('film_page.html', id=film_id, album=film_data[0], polish_title=film_data[1], director=film_data[2], year=film_data[3], description=film_data[4], country=film_data[5])
 
 
 if __name__ == "__main__":
