@@ -1,9 +1,9 @@
 import psycopg2
 from config import DATABASE_URL
-from flask import Flask, session, render_template, redirect, request
+from flask import Flask, session, render_template, redirect, request, url_for
 from flask_session import Session
 from werkzeug.security import check_password_hash, generate_password_hash
-from helpers import is_valid_mail, login_required, logged_user, Film
+from helpers import is_valid_mail, login_required, login_not_required, logged_user, Film
 
 
 app = Flask(__name__)
@@ -14,13 +14,21 @@ Session(app)
 url = DATABASE_URL
 
 
-@app.route("/", methods=["GET", "POST"])
-def default():
+@app.before_first_request
+def clear_session():
     session.clear()
-    return render_template("login.html")
+
+
+@app.route("/", methods=["GET", "POST"])
+@login_not_required
+def default():
+    checker = request.args.get("checker", default="True", type=str) == "True"
+    message = request.args.get("message", default="", type=str)
+    return render_template("login.html", checker=checker, message=message)
 
 
 @app.route("/register", methods=["GET", "POST"])
+@login_not_required
 def register():
     session.clear()
     if request.method == "POST":
@@ -73,20 +81,22 @@ def register():
             print(test)
             cursor.close()
             connection.close()
-
         return redirect("/")
     else:
         return render_template("register.html")
 
 
 @app.route("/main_page", methods=["GET", "POST"])
+@login_not_required
 def main_page():
     if request.method == "POST":
         if not request.form.get("email"):
-            return render_template("login.html", checker=False, message="Niepoprawny email!")
+            # return render_template("login.html", checker=False, message="Niepoprawny email!")
+            return redirect(url_for("default", checker="False", message="Niepoprawny email!"))
         email = request.form.get("email")
         if not request.form.get("password"):
-            return render_template("login.html", checker=False, message="Niepoprawne hasło!")
+            # return render_template("login.html", checker=False, message="Niepoprawne hasło!")
+            return redirect(url_for("default", checker="False", message="Niepoprawne hasło!"))
         password = request.form.get("password")
         connection = psycopg2.connect(url)
         cursor = connection.cursor()
@@ -99,12 +109,14 @@ def main_page():
             user_id = records[0][0]
             hash_from_db = records[0][1]
         else:
-            return render_template("login.html", checker=False, message="Niepoprawny email!")
+            # return render_template("login.html", checker=False, message="Niepoprawny email!")
+            return redirect(url_for("default", checker="False", message="Niepoprawny email!"))
         if check_password_hash(hash_from_db, password):
             session["user_id"] = user_id
             return redirect("/home")
         else:
-            return render_template("login.html", checker=False, message="Niepoprawne hasło lub email!")
+            # return render_template("login.html", checker=False, message="Niepoprawny email lub hasło!")
+            return redirect(url_for("default", checker="False", message="Niepoprawne hasło lub email!"))
     else:
         return redirect("/")
 
