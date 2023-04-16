@@ -172,7 +172,7 @@ def home():
 def search():
     """Route used to search for movies, redirects to home page with search_string appended as a query string parameter."""
     if request.method == "POST":
-        search_string = request.form.get("search_string")
+        search_string = request.form.get("search_string").strip().title()
         if search_string != "":
             return redirect(f"/home?search_string={search_string}")
     return redirect("/home")
