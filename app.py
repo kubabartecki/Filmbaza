@@ -1,26 +1,51 @@
 import psycopg2
 from config import DATABASE_URL
-from flask import Flask, session, render_template, redirect, request
+from flask import Flask, session, render_template, redirect, request, url_for
 from flask_session import Session
 from werkzeug.security import check_password_hash, generate_password_hash
-from helpers import is_valid_mail, login_required, logged_user, Film
+from helpers import is_valid_mail, login_required, login_not_required, logged_user, Film
 
 
 app = Flask(__name__)
+
+# Ensure templates are auto-reloaded
 app.config["TEMPLATES_AUTO_RELOAD"] = True
+
+# Configure session to use filesystem
 app.config["SESSION_PERMANENT"] = False
 app.config['SESSION_TYPE'] = 'filesystem'
 Session(app)
 url = DATABASE_URL
 
 
-@app.route("/", methods=["GET", "POST"])
-def default():
+@app.before_first_request
+def clear_session():
+    """Ensuring that the user is not logged in."""
     session.clear()
-    return render_template("login.html")
 
-@app.route("/register", methods=["GET", "POST"]) 
+
+@app.after_request
+def after_request(response):
+    """Ensure responses aren't cached."""
+    response.headers["Cache-Control"] = "no-cache, no-store, must-revalidate"
+    response.headers["Expires"] = 0
+    response.headers["Pragma"] = "no-cache"
+    return response
+
+
+@app.route("/", methods=["GET", "POST"])
+@login_not_required
+def default():
+    """Default route for website. Renders login form and errors if any."""
+    checker = request.args.get("checker", default="True", type=str) == "True"
+    message = request.args.get("message", default="", type=str)
+    return render_template("login.html", checker=checker, message=message)
+
+
+@app.route("/register", methods=["GET", "POST"])
+@login_not_required
 def register():
+    """Route called when user wants to register a new account."""
     session.clear()
     if request.method == "POST":
         if not request.form.get("name"):
@@ -36,33 +61,34 @@ def register():
             return redirect("/register")
         email = request.form.get("email")
         if not request.form.get("password"):
-            return redirect("/register")  
+            return redirect("/register")
         if is_valid_mail(email):
-            print ("Adres email jest poprawny")
+            print("Adres email jest poprawny")
         else:
             print("Adres email jest niepoprawny")
             return redirect("/register")
         password = request.form.get("password")
         print(f"{name} {surname} {username} {email} {password}")
-        
+
         connection = psycopg2.connect(url)
         cursor = connection.cursor()
         cursor.execute('SELECT * FROM \"User\" WHERE mail = %s', [email])
         email_check = cursor.fetchone()
-       
+
         if email_check:
             message = "Podany adres jest juz zarejestrowany. Sprobuj zarejestrowac sie z innym adresem"
-            #return render_template('register.html', message=message) -> Będzie możliwe wyświetlanie komunikatu jak front doda możliwość wyświetlenia message
+            # return render_template('register.html', message=message) -> Będzie możliwe wyświetlanie komunikatu jak front doda możliwość wyświetlenia message
             print(message)
             return redirect("/register")
         else:
             salt_length = 12
-            hashed_password = generate_password_hash(password, salt_length=salt_length, method = 'sha256')
-            cursor.execute('INSERT INTO \"User\" (mail, password, username, name, surname, rank_id_rank)' 
-                        'VALUES(%s, %s, %s, %s, %s, %s)',
-                        [email, hashed_password, username, name, surname, 1])
-        
-            #Sprawdzanie całej bazy w Userze
+            hashed_password = generate_password_hash(
+                password, salt_length=salt_length, method='sha256')
+            cursor.execute('INSERT INTO \"User\" (mail, password, username, name, surname, rank_id_rank)'
+                           'VALUES(%s, %s, %s, %s, %s, %s)',
+                           [email, hashed_password, username, name, surname, 1])
+
+            # Sprawdzanie całej bazy w Userze
             cursor.execute("SELECT* FROM \"User\"")
             ################################
             connection.commit()
@@ -71,24 +97,28 @@ def register():
             print(test)
             cursor.close()
             connection.close()
-
         return redirect("/")
     else:
         return render_template("register.html")
 
 
 @app.route("/main_page", methods=["GET", "POST"])
+@login_not_required
 def main_page():
+    """Route to user login validation, handles errors within default route."""
     if request.method == "POST":
         if not request.form.get("email"):
-            return redirect("/")
+            # return render_template("login.html", checker=False, message="Niepoprawny email!")
+            return redirect(url_for("default", checker="False", message="Niepoprawny email!"))
         email = request.form.get("email")
         if not request.form.get("password"):
-            return redirect("/")
+            # return render_template("login.html", checker=False, message="Niepoprawne hasło!")
+            return redirect(url_for("default", checker="False", message="Niepoprawne hasło!"))
         password = request.form.get("password")
         connection = psycopg2.connect(url)
         cursor = connection.cursor()
-        cursor.execute("SELECT \"User\".id_user, \"User\".password FROM \"User\" WHERE \"User\".mail = %s", [email])
+        cursor.execute(
+            "SELECT \"User\".id_user, \"User\".password FROM \"User\" WHERE \"User\".mail = %s", [email])
         records = cursor.fetchall()
         cursor.close()
         connection.close()
@@ -96,12 +126,14 @@ def main_page():
             user_id = records[0][0]
             hash_from_db = records[0][1]
         else:
-            return redirect("/")
+            # return render_template("login.html", checker=False, message="Niepoprawny email!")
+            return redirect(url_for("default", checker="False", message="Niepoprawny email!"))
         if check_password_hash(hash_from_db, password):
             session["user_id"] = user_id
             return redirect("/home")
         else:
-            return redirect("/")
+            # return render_template("login.html", checker=False, message="Niepoprawny email lub hasło!")
+            return redirect(url_for("default", checker="False", message="Niepoprawne hasło lub email!"))
     else:
         return redirect("/")
 
@@ -109,11 +141,14 @@ def main_page():
 @app.route("/home", methods=["GET", "POST"])
 @login_required
 def home():
+    """Main page of the website."""
     connection = psycopg2.connect(url)
     cursor = connection.cursor()
-    cursor.execute("SELECT * FROM \"User\" WHERE \"User\".id_user = %s", [session["user_id"]])
+    cursor.execute(
+        "SELECT * FROM \"User\" WHERE \"User\".id_user = %s", [session["user_id"]])
     user_records = cursor.fetchall()
-    cursor.execute("SELECT COUNT(ID_REVIEW) FROM \"review\" INNER JOIN  \"User\" as u ON \"review\".User_ID_USER = u.ID_USER WHERE u.ID_USER = %s", [session["user_id"]])
+    cursor.execute("SELECT COUNT(ID_REVIEW) FROM \"review\" INNER JOIN  \"User\" as u ON \"review\".User_ID_USER = u.ID_USER WHERE u.ID_USER = %s", [
+                   session["user_id"]])
     user_reviews_count = cursor.fetchall()
     # tutaj i w innych miejscach gdzie beda recenzje bedzie trzeba dodac czy przypadkiem ktos nie awansowal, a wtedy trzeba zmienic range
     cursor.execute("SELECT film.ID_FILM, film.poster, film.title, film.director, film.year, film.description, STRING_AGG(country.name, ', ') countries, (SELECT AVG(review.stars) avg_grade FROM review WHERE review.film_id_film = film.id_film) FROM film_country JOIN film ON film.id_film = film_country.film_id_film JOIN country ON film_country.country_id_country = country.id_country GROUP BY film.id_film;")
@@ -122,7 +157,8 @@ def home():
     films = []
     for row in films_records:
         if search_string != None:
-            cursor.execute("SELECT c.name FROM category c JOIN film_category fc ON c.id_category = fc.category_id_category JOIN film f ON f.id_film = fc.film_id_film WHERE f.id_film = %s", [row[0]])
+            cursor.execute(
+                "SELECT c.name FROM category c JOIN film_category fc ON c.id_category = fc.category_id_category JOIN film f ON f.id_film = fc.film_id_film WHERE f.id_film = %s", [row[0]])
             films.append(Film(row, cursor.fetchall()[0]))
         else:
             films.append(Film(row, [0]))
@@ -130,14 +166,44 @@ def home():
     connection.close()
     return render_template("main_page.html", films=films, logged_user=logged_user(user_records, user_reviews_count), search_string=search_string)
 
+
 @app.route("/search", methods=["GET", "POST"])
 @login_required
 def search():
+    """Route used to search for movies, redirects to home page with search_string appended as a query string parameter."""
     if request.method == "POST":
         search_string = request.form.get("search_string")
         if search_string != "":
             return redirect(f"/home?search_string={search_string}")
     return redirect("/home")
-    
+
+
+@app.route("/film_page", methods=["GET", "POST"])
+@login_required
+def film_page():
+    """Route used to display details about a specific movie."""
+    movie_id = request.form.get('film_butt')
+    connection = psycopg2.connect(url)
+    cursor = connection.cursor()
+    cursor.execute("SELECT * FROM film WHERE id_film = %s", [movie_id])
+    film_id = cursor.fetchone()[0]
+    print(film_id)
+    print(request.args)
+    cursor.execute(
+        "SELECT film.poster, film.title, film.director, film.year, film.description, STRING_AGG(country.name, ', ') countries, (SELECT AVG(review.stars) avg_grade FROM review WHERE review.film_id_film = film.id_film) FROM film_country JOIN film ON film.id_film = film_country.film_id_film JOIN country ON film_country.country_id_country = country.id_country WHERE film.id_film = %s GROUP BY film.id_film", [film_id])
+    film_data = cursor.fetchone()
+    film_dict = {
+        'poster': film_data[0],
+        'title': film_data[1],
+        'director': film_data[2],
+        'year': film_data[3],
+        'description': film_data[4],
+        'countries': film_data[5],
+        'avg_grade': film_data[6]
+    }
+    print(film_dict)
+    return render_template('film_page.html', id=film_id, album=film_data[0], polish_title=film_data[1], director=film_data[2], year=film_data[3], description=film_data[4], country=film_data[5])
+
+
 if __name__ == "__main__":
     app.run()
