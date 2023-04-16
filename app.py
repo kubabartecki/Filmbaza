@@ -133,7 +133,7 @@ def main_page():
             return redirect("/home")
         else:
             # return render_template("login.html", checker=False, message="Niepoprawny email lub hasło!")
-            return redirect(url_for("default", checker="False", message="Niepoprawne hasło lub email!"))
+            return redirect(url_for("default", checker="False", message="Niepoprawny email lub hasło!"))
     else:
         return redirect("/")
 
