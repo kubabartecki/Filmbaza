@@ -3,14 +3,13 @@ from config import DATABASE_URL
 from flask import Flask, session, render_template, redirect, request, url_for
 from flask_session import Session
 from werkzeug.security import check_password_hash, generate_password_hash
-from helpers import is_valid_mail, login_required, login_not_required, logged_user, Film, is_valid_name_surname, correct_password
+from helpers import login_required, login_not_required, logged_user, Film, is_valid_name_surname, is_valid_mail, correct_password
 
 
 app = Flask(__name__)
 
 # Ensure templates are auto-reloaded
 app.config["TEMPLATES_AUTO_RELOAD"] = True
-
 # Configure session to use filesystem
 app.config["SESSION_PERMANENT"] = False
 app.config['SESSION_TYPE'] = 'filesystem'
@@ -42,60 +41,47 @@ def default():
     return render_template("login.html", checker=checker, message=message)
 
 
-
 @app.route("/register", methods=["GET", "POST"])
 @login_not_required
 def register():
     """Route called when user wants to register a new account."""
-    session.clear()
-    
     checker = request.args.get("checker", default="True", type=str) == "True"
     message = request.args.get("message", default="", type=str)
-   
     if request.method == "POST":
-
         if not request.form.get("name"):
-            return redirect(url_for("register", checker=False, message="Imię jest wymagane."))
+            return redirect(url_for("register", checker="False", message="Imię jest wymagane!"))
         name = request.form.get("name")
         if not is_valid_name_surname(name):
-            return redirect(url_for("register", checker=False, message="Podane imię jest niepoprawne! Nie powinno ono zawierać znaków specjalnych i co najmnniej dwa znaki!"))
-    
-       
+            return redirect(url_for("register", checker="False", message="Podane imię jest niepoprawne! Nie powinno ono zawierać znaków specjalnych i co najmnniej dwa znaki!"))
+
         surname = request.form.get("surname")
         if not request.form.get("surname"):
-            return redirect(url_for("register", checker=False, message = "Nazwisko jest wymagane"))
+            return redirect(url_for("register", checker="False", message="Nazwisko jest wymagane!"))
         if not is_valid_name_surname(surname):
-            return redirect(url_for("register", checker=False, message="Podane nazwisko jest niepoprawne! Nie powinno ono zawierać znaków specjalnych i co najmniej dwa znaki!"))
-        
-        
+            return redirect(url_for("register", checker="False", message="Podane nazwisko jest niepoprawne! Nie powinno ono zawierać znaków specjalnych i co najmniej dwa znaki!"))
+
         username = request.form.get("username")
         if not request.form.get("username"):
-            return redirect(url_for("register", checker=False, message = "Nazwa użytkownika jest wymagana"))
-        
-        
+            return redirect(url_for("register", checker="False", message="Nazwa użytkownika jest wymagana!"))
+
         email = request.form.get("email")
         if not request.form.get("email"):
-            return redirect(url_for("register", checker=False, message = "Email jest wymagany"))
+            return redirect(url_for("register", checker="False", message="Email jest wymagany!"))
         if not is_valid_mail(email):
             return redirect(url_for("register", checker="False", message="Podany email jest niepoprawny!"))
 
         password = request.form.get("password")
         if not request.form.get("password"):
-            return redirect(url_for("register", checker=False, message = "Hasło jest wymagane"))
+            return redirect(url_for("register", checker="False", message="Hasło jest wymagane!"))
         if not correct_password(password):
             return redirect(url_for("register", checker="False", message="Podane hasło jest niepoprawne! Powinno ono zawierać co najmniej 8 znaków, jedną dużą literę oraz znak specjalny."))
-
-        print(f"{name} {surname} {username} {email} {password}")
 
         connection = psycopg2.connect(url)
         cursor = connection.cursor()
         cursor.execute('SELECT * FROM \"User\" WHERE mail = %s', [email])
         email_check = cursor.fetchone()
-
         if email_check:
             return redirect(url_for("register", checker="False", message="Podany email jest już zarejestrowany!"))
-        
-        
         else:
             salt_length = 12
             hashed_password = generate_password_hash(
@@ -103,18 +89,12 @@ def register():
             cursor.execute('INSERT INTO \"User\" (mail, password, username, name, surname, rank_id_rank)'
                            'VALUES(%s, %s, %s, %s, %s, %s)',
                            [email, hashed_password, username, name, surname, 1])
-
-            # Sprawdzanie całej bazy w Userze
-            cursor.execute("SELECT* FROM \"User\"")
-            ################################
             connection.commit()
-            test = cursor.fetchall()
-            print(test)
             cursor.close()
             connection.close()
         return redirect("/")
     else:
-        return render_template("register.html", checker=checker, message=message )
+        return render_template("register.html", checker=checker, message=message)
 
 
 @app.route("/main_page", methods=["GET", "POST"])
@@ -123,12 +103,10 @@ def main_page():
     """Route to user login validation, handles errors within default route."""
     if request.method == "POST":
         if not request.form.get("email"):
-            # return render_template("login.html", checker=False, message="Niepoprawny email!")
-            return redirect(url_for("default", checker="False", message="Niepoprawny email!"))
+            return redirect(url_for("default", checker="False", message="Email jest wymagany!"))
         email = request.form.get("email")
         if not request.form.get("password"):
-            # return render_template("login.html", checker=False, message="Niepoprawne hasło!")
-            return redirect(url_for("default", checker="False", message="Niepoprawne hasło!"))
+            return redirect(url_for("default", checker="False", message="Hasło jest wymagane!"))
         password = request.form.get("password")
         connection = psycopg2.connect(url)
         cursor = connection.cursor()
@@ -141,13 +119,11 @@ def main_page():
             user_id = records[0][0]
             hash_from_db = records[0][1]
         else:
-            # return render_template("login.html", checker=False, message="Niepoprawny email!")
             return redirect(url_for("default", checker="False", message="Niepoprawny email!"))
         if check_password_hash(hash_from_db, password):
             session["user_id"] = user_id
             return redirect("/home")
         else:
-            # return render_template("login.html", checker=False, message="Niepoprawny email lub hasło!")
             return redirect(url_for("default", checker="False", message="Niepoprawny email lub hasło!"))
     else:
         return redirect("/")
@@ -202,21 +178,9 @@ def film_page():
     cursor = connection.cursor()
     cursor.execute("SELECT * FROM film WHERE id_film = %s", [movie_id])
     film_id = cursor.fetchone()[0]
-    print(film_id)
-    print(request.args)
     cursor.execute(
         "SELECT film.poster, film.title, film.director, film.year, film.description, STRING_AGG(country.name, ', ') countries, (SELECT AVG(review.stars) avg_grade FROM review WHERE review.film_id_film = film.id_film) FROM film_country JOIN film ON film.id_film = film_country.film_id_film JOIN country ON film_country.country_id_country = country.id_country WHERE film.id_film = %s GROUP BY film.id_film", [film_id])
     film_data = cursor.fetchone()
-    film_dict = {
-        'poster': film_data[0],
-        'title': film_data[1],
-        'director': film_data[2],
-        'year': film_data[3],
-        'description': film_data[4],
-        'countries': film_data[5],
-        'avg_grade': film_data[6]
-    }
-    print(film_dict)
     return render_template('film_page.html', id=film_id, album=film_data[0], original_title=film_data[1], director=film_data[2], year=film_data[3], description=film_data[4], country=film_data[5])
 
 

@@ -10,6 +10,18 @@ def is_valid_mail(mail):
     return match is not None
 
 
+def is_valid_name_surname(name):
+    pattern = r'^([A-ZĄĆĘŁŃÓŚŹŻ][a-ząćęłńóśźż]{1,20}([ -][A-ZĄĆĘŁŃÓŚŹŻ][a-ząćęłńóśźż]{1,20})?)$'
+    match = re.match(pattern, name)
+    return match is not None
+
+
+def correct_password(password):
+    pattern = r'^(?=.*[A-Z])(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&ęóąśłżźćńĘÓĄŚŁŻŹĆŃ]{8,}$'
+    match = re.match(pattern, password)
+    return match is not None
+
+
 def login_required(f):
     """Decorator function that checks if a user is logged in. If not, the function redirects to the login page."""
     @wraps(f)
@@ -41,17 +53,6 @@ def get_rank_name(rank):
         return "Filmowiec"
     elif rank == 4:
         return "Filmomaniak"
-
-
-def is_valid_name_surname(name):
-    pattern = r'^([A-ZĄĆĘŁŃÓŚŹŻ][a-ząćęłńóśźż]{1,20}([ -][A-ZĄĆĘŁŃÓŚŹŻ][a-ząćęłńóśźż]{1,20})?)$'
-    match = re.match(pattern, name)
-    return match is not None
-
-def correct_password(password):
-    pattern = r'^(?=.*[A-Z])(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&ęóąśłżźćńĘÓĄŚŁŻŹĆŃ]{8,}$'
-    match = re.match(pattern, password)
-    return match is not None
 
 
 class logged_user():
