@@ -42,35 +42,48 @@ def default():
     return render_template("login.html", checker=checker, message=message)
 
 
+
 @app.route("/register", methods=["GET", "POST"])
 @login_not_required
 def register():
     """Route called when user wants to register a new account."""
     session.clear()
+    
+    checker = request.args.get("checker", default="True", type=str) == "True"
+    message = request.args.get("message", default="", type=str)
+   
     if request.method == "POST":
+
         if not request.form.get("name"):
-            return redirect("/register")
+            return redirect(url_for("register", checker=False, message="Imię jest wymagane."))
         name = request.form.get("name")
-        if not request.form.get("surname"):
-            return redirect("/register")
         if not is_valid_name_surname(name):
-            return redirect(url_for("default", checker="False", message="Podane imię jest niepoprawne! Nie powinno ono zawierać znaków specjalnych i co najmnniej dwa znaki!"))
+            return redirect(url_for("register", checker=False, message="Podane imię jest niepoprawne! Nie powinno ono zawierać znaków specjalnych i co najmnniej dwa znaki!"))
+    
+       
         surname = request.form.get("surname")
-        if not request.form.get("username"):
-            return redirect("/register")
+        if not request.form.get("surname"):
+            return redirect(url_for("register", checker=False, message = "Nazwisko jest wymagane"))
         if not is_valid_name_surname(surname):
-            return redirect(url_for("default", checker="False", message="Podane nazwisko jest niepoprawne! Nie powinno ono zawierać znaków specjalnych i co najmniej dwa znaki!"))
+            return redirect(url_for("register", checker=False, message="Podane nazwisko jest niepoprawne! Nie powinno ono zawierać znaków specjalnych i co najmniej dwa znaki!"))
+        
+        
         username = request.form.get("username")
-        if not request.form.get("email"):
-            return redirect("/register")
+        if not request.form.get("username"):
+            return redirect(url_for("register", checker=False, message = "Nazwa użytkownika jest wymagana"))
+        
+        
         email = request.form.get("email")
-        if not request.form.get("password"):
-            return redirect("/register")
+        if not request.form.get("email"):
+            return redirect(url_for("register", checker=False, message = "Email jest wymagany"))
         if not is_valid_mail(email):
-            return redirect(url_for("default", checker="False", message="Podany email jest niepoprawny!"))
+            return redirect(url_for("register", checker="False", message="Podany email jest niepoprawny!"))
+
         password = request.form.get("password")
+        if not request.form.get("password"):
+            return redirect(url_for("register", checker=False, message = "Hasło jest wymagane"))
         if not correct_password(password):
-            return redirect(url_for("default", checker="False", message="Podane hasło jest niepoprawne! Powinno ono zawierać co najmniej 8 znaków, jedną dużą literę oraz znak specjalny."))
+            return redirect(url_for("register", checker="False", message="Podane hasło jest niepoprawne! Powinno ono zawierać co najmniej 8 znaków, jedną dużą literę oraz znak specjalny."))
 
         print(f"{name} {surname} {username} {email} {password}")
 
@@ -80,7 +93,7 @@ def register():
         email_check = cursor.fetchone()
 
         if email_check:
-            return redirect(url_for("default", checker="False", message="Podany email jest już zarejestrowany!"))
+            return redirect(url_for("register", checker="False", message="Podany email jest już zarejestrowany!"))
         
         
         else:
@@ -95,14 +108,13 @@ def register():
             cursor.execute("SELECT* FROM \"User\"")
             ################################
             connection.commit()
-            print("Uzytkowanik zostal pomyslnie zarejestrowany")
             test = cursor.fetchall()
             print(test)
             cursor.close()
             connection.close()
         return redirect("/")
     else:
-        return render_template("register.html")
+        return render_template("register.html", checker=checker, message=message )
 
 
 @app.route("/main_page", methods=["GET", "POST"])

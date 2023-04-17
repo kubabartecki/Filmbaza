@@ -49,7 +49,7 @@ def is_valid_name_surname(name):
     return match is not None
 
 def correct_password(password):
-    pattern = r'^(?=.*[A-Z])(?=.*[@$!%*?&])[A-Za-z@$!%*?&ęóąśłżźćńĘÓĄŚŁŻŹĆŃ]{8,}$'
+    pattern = r'^(?=.*[A-Z])(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&ęóąśłżźćńĘÓĄŚŁŻŹĆŃ]{8,}$'
     match = re.match(pattern, password)
     return match is not None
 
