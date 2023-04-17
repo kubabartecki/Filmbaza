@@ -3,7 +3,7 @@ from config import DATABASE_URL
 from flask import Flask, session, render_template, redirect, request, url_for
 from flask_session import Session
 from werkzeug.security import check_password_hash, generate_password_hash
-from helpers import is_valid_mail, login_required, login_not_required, logged_user, Film
+from helpers import is_valid_mail, login_required, login_not_required, logged_user, Film, is_valid_name_surname, correct_password
 
 
 app = Flask(__name__)
@@ -53,21 +53,25 @@ def register():
         name = request.form.get("name")
         if not request.form.get("surname"):
             return redirect("/register")
+        if not is_valid_name_surname(name):
+            return redirect(url_for("default", checker="False", message="Podane imię jest niepoprawne! Nie powinno ono zawierać znaków specjalnych i co najmnniej dwa znaki!"))
         surname = request.form.get("surname")
         if not request.form.get("username"):
             return redirect("/register")
+        if not is_valid_name_surname(surname):
+            return redirect(url_for("default", checker="False", message="Podane nazwisko jest niepoprawne! Nie powinno ono zawierać znaków specjalnych i co najmniej dwa znaki!"))
         username = request.form.get("username")
         if not request.form.get("email"):
             return redirect("/register")
         email = request.form.get("email")
         if not request.form.get("password"):
             return redirect("/register")
-        if is_valid_mail(email):
-            print("Adres email jest poprawny")
-        else:
-            print("Adres email jest niepoprawny")
-            return redirect("/register")
+        if not is_valid_mail(email):
+            return redirect(url_for("default", checker="False", message="Podany email jest niepoprawny!"))
         password = request.form.get("password")
+        if not correct_password(password):
+            return redirect(url_for("default", checker="False", message="Podane hasło jest niepoprawne! Powinno ono zawierać co najmniej 8 znaków, jedną dużą literę oraz znak specjalny."))
+
         print(f"{name} {surname} {username} {email} {password}")
 
         connection = psycopg2.connect(url)
@@ -76,10 +80,9 @@ def register():
         email_check = cursor.fetchone()
 
         if email_check:
-            message = "Podany adres jest juz zarejestrowany. Sprobuj zarejestrowac sie z innym adresem"
-            # return render_template('register.html', message=message) -> Będzie możliwe wyświetlanie komunikatu jak front doda możliwość wyświetlenia message
-            print(message)
-            return redirect("/register")
+            return redirect(url_for("default", checker="False", message="Podany email jest już zarejestrowany!"))
+        
+        
         else:
             salt_length = 12
             hashed_password = generate_password_hash(
