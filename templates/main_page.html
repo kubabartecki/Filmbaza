@@ -30,46 +30,120 @@
             </div>
 
             <div class="col-10" style="padding-left: 3vw;">
-                
-                <form method="POST" action="/search">
-                    <div class="input-group" style="width: 20vw; margin-left: 30vw; margin-top: 3vh;">
+                <div class="row">
 
-                        <input type="text" class="form-control" name="search_string" placeholder="Tytuł/kategoria" aria-label="search_string" aria-describedby="basic-addon2">
-                        
-                        <div class="input-group-append">                        
-                                <button class="btn btn-outline-secondary" type="submit">Szukaj</button>
-                        </div>
+                    <div class="col-4">
 
+                        <form method="POST" action="/select_catalog" style="width: 30vw; margin-top: 1vh;">
+                            <div class="input-group" style="width: 30vw; margin-left: 3vw;">
+    
+                                <select style="width: 20vw">
+                                    <option value="all" selected>Wszystkie</option>
+                                    {% for name in logged_user.catalogs %}
+    
+                                        <option value={{name}}>{{name}}</option>
+    
+                                    {% endfor %}
+                                </select>
+                                
+                                <div class="input-group-append">                        
+                                        <button class="btn btn-outline-secondary" type="submit">Wybierz</button>
+                                </div>
+                            </div>
+                        </form>
                     </div>
-                </form>
+
+                    <div class="col-2">
+
+                        <div class="input-group-append">
+                            <a href="/add_catalog">
+                                <button type="button" class="btn btn-secondary" style="width: 10vw; margin-top: 1vh; margin-left: 3vh;">Dodaj listę</button>
+                            </a>
+                        </div>
+                    </div>
+
+                    <div class="col-4">
+
+                        <form method="POST" action="/search">
+                            <div class="input-group" style="width: 20vw; margin-left: 8vw; margin-top: 1vh; margin-bottom: 1vh;">
+    
+                                <input type="text" class="form-control" name="search_string" placeholder="Tytuł/kategoria" aria-label="search_string" aria-describedby="basic-addon2">
+                                
+                                <div class="input-group-append">                        
+                                        <button class="btn btn-outline-secondary" type="submit">Szukaj</button>
+                                </div>
+    
+                            </div>
+                        </form>
+                    </div>
+                    
+                    <div class="col-2">
+
+                        <div class="input-group-append">
+                            <a href="/add_film">
+                                <button type="button" class="btn btn-secondary" style="width: 10vw; margin-top: 1vh; margin-left: 3vh;">Dodaj film</button>
+                            </a>
+                        </div>
+                    </div>
+                </div>
 
                 <div class="overflow-auto my-4" style="background-color: rgb(216, 216, 216); max-width: 80vw; max-height: 79vh;">
-                    {% for film in films %}
-                        {% for tag in film.tags if search_string == None or search_string == tag %}                   
-                                <div class="mx-3 my-3" style="height: 26vh; background-color: rgb(235, 235, 235);">
-                                    
-                                    <div class="mx-1 my-1" style="height: 25vh; width: 10vw; float: left;">
-                                        <img src={{film.album}} width="150vw" height="185vh" title="album">
-                                    </div>
-                                    
-                                    <div class="mx-1 my-1" style="height: 25vh; width: 55vw; float: left;">
-                                        <h3>{{film.title}} by {{film.director}}</h3>
-                                        <h5>{{film.year}} {{film.country}}</h5>                                    
-                                        {{film.description}}
-                                    </div>
-                                    
-                                    <div class="mx-1 my-1 text-center" style="height: 25vh; width: 10vw; float: left;">
-                                        <h3 style="padding-top: 4vh;">OCENA</h3>
-                                        <h4>{{film.avg_grade}} / 10</h4>
+                    {% if catalog_name == all %}
+                        {% for film in films %}
+                            {% for tag in film.tags if search_string == None or search_string == tag %}                   
+                                    <div class="mx-3 my-3" style="height: 26vh; background-color: rgb(235, 235, 235);">
+                                        
+                                        <div class="mx-1 my-1" style="height: 25vh; width: 10vw; float: left;">
+                                            <img src={{film.album}} width="150vw" height="185vh" title="album">
+                                        </div>
+                                        
+                                        <div class="mx-1 my-1" style="height: 25vh; width: 55vw; float: left;">
+                                            <h3>{{film.title}} by {{film.director}}</h3>
+                                            <h5>{{film.year}} {{film.country}}</h5>                                    
+                                            {{film.description}}
+                                        </div>
+                                        
+                                        <div class="mx-1 my-1 text-center" style="height: 25vh; width: 10vw; float: left;">
+                                            <h3 style="padding-top: 4vh;">OCENA</h3>
+                                            <h4>{{film.avg_grade}} / 10</h4>
 
-                                        <form method="POST" action="/film_page">
-                                            <button type="submit" class="btn btn-secondary" value={{film.id}} name="film_butt">Strona filmu</button>
-                                        </form>
+                                            <form method="POST" action="/film_page">
+                                                <button type="submit" class="btn btn-secondary" value={{film.id}} name="film_butt">Strona filmu</button>
+                                            </form>
 
+                                        </div>
                                     </div>
+                            {% endfor %}                  
+                        {% endfor %}
+
+                    {% else %}
+                        {% for film in catalog %}                   
+                            <div class="mx-3 my-3" style="height: 26vh; background-color: rgb(235, 235, 235);">
+                                
+                                <div class="mx-1 my-1" style="height: 25vh; width: 10vw; float: left;">
+                                    <img src={{film.album}} width="150vw" height="185vh" title="album">
                                 </div>
-                        {% endfor %}                  
-                    {% endfor %}
+                                
+                                <div class="mx-1 my-1" style="height: 25vh; width: 55vw; float: left;">
+                                    <h3>{{film.title}} by {{film.director}}</h3>
+                                    <h5>{{film.year}} {{film.country}}</h5>                                    
+                                    {{film.description}}
+                                </div>
+                                
+                                <div class="mx-1 my-1 text-center" style="height: 25vh; width: 10vw; float: left;">
+                                    <h3 style="padding-top: 4vh;">OCENA</h3>
+                                    <h4>{{film.avg_grade}} / 10</h4>
+
+                                    <form method="POST" action="/film_page">
+                                        <button type="submit" class="btn btn-secondary" value={{film.id}} name="film_butt">Strona filmu</button>
+                                    </form>
+
+                                </div>
+                            </div>
+                        {% endfor %}     
+                    {% endif %}
+
+
                 </div>
             </div>
         </div>
