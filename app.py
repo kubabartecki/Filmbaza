@@ -31,7 +31,145 @@ def after_request(response):
     response.headers["Pragma"] = "no-cache"
     return response
 
+@app.route("/", methods=["GET", "POST"])
+@login_not_required
+def default():
+    """Main page of the website."""
+    connection = psycopg2.connect(url)
+    cursor = connection.cursor()
+    cursor.execute("SELECT film.ID_FILM, film.poster, film.title, film.director, film.year, film.description, STRING_AGG(country.name, ', ') countries, (SELECT AVG(review.stars) avg_grade FROM review WHERE review.film_id_film = film.id_film) FROM film_country JOIN film ON film.id_film = film_country.film_id_film JOIN country ON film_country.country_id_country = country.id_country GROUP BY film.id_film;")
+    films_records = cursor.fetchall()
+    search_string = request.args.get("search_string")
+    films = []
+    for row in films_records:
+        if search_string != None:
+            cursor.execute(
+                "SELECT c.name FROM category c JOIN film_category fc ON c.id_category = fc.category_id_category JOIN film f ON f.id_film = fc.film_id_film WHERE f.id_film = %s", [row[0]])
+            films.append(Film(row, cursor.fetchall()[0]))
+        else:
+            films.append(Film(row, [0]))
+    cursor.close()
+    connection.close()
+    return render_template("unloggedd.html", films=films, search_string=search_string)
 
+
+@app.route("/login", methods=["GET", "POST"])
+@login_not_required
+def login():
+    checker = request.args.get("checker", default="True", type=str) == "True"
+    message = request.args.get("message", default="", type=str)
+    return render_template("login.html", checker=checker, message=message)
+
+@app.route("/main_page", methods=["GET", "POST"])
+@login_not_required
+def main_page():
+    """Route to user login validation, handles errors within default route."""
+    if request.method == "POST":
+        if not request.form.get("email"):
+            return redirect(url_for("login", checker="False", message="Email jest wymagany!"))
+        email = request.form.get("email")
+        if not request.form.get("password"):
+            return redirect(url_for("login", checker="False", message="Hasło jest wymagane!"))
+        password = request.form.get("password")
+        connection = psycopg2.connect(url)
+        cursor = connection.cursor()
+        cursor.execute(
+            "SELECT \"User\".id_user, \"User\".password FROM \"User\" WHERE \"User\".mail = %s", [email])
+        records = cursor.fetchall()
+        cursor.close()
+        connection.close()
+        if len(records) == 1:
+            user_id = records[0][0]
+            hash_from_db = records[0][1]
+        else:
+            return redirect(url_for("login", checker="False", message="Niepoprawny email!"))
+        if check_password_hash(hash_from_db, password):
+            session["user_id"] = user_id
+            return redirect("/home")
+        else:
+            return redirect(url_for("login", checker="False", message="Niepoprawny email lub hasło!"))
+    else:
+        return redirect("/login")
+
+@app.route("/home", methods=["GET", "POST"])
+@login_required
+def home():
+    """Main page of the website."""
+    connection = psycopg2.connect(url)
+    cursor = connection.cursor()
+    cursor.execute(
+        "SELECT * FROM \"User\" WHERE \"User\".id_user = %s", [session["user_id"]])
+    user_records = cursor.fetchall()
+    cursor.execute("SELECT COUNT(ID_REVIEW) FROM \"review\" INNER JOIN  \"User\" as u ON \"review\".User_ID_USER = u.ID_USER WHERE u.ID_USER = %s", [
+                   session["user_id"]])
+    user_reviews_count = cursor.fetchall()
+    # tutaj i w innych miejscach gdzie beda recenzje bedzie trzeba dodac czy przypadkiem ktos nie awansowal, a wtedy trzeba zmienic range
+    cursor.execute("SELECT film.ID_FILM, film.poster, film.title, film.director, film.year, film.description, STRING_AGG(country.name, ', ') countries, (SELECT AVG(review.stars) avg_grade FROM review WHERE review.film_id_film = film.id_film) FROM film_country JOIN film ON film.id_film = film_country.film_id_film JOIN country ON film_country.country_id_country = country.id_country GROUP BY film.id_film;")
+    films_records = cursor.fetchall()
+    search_string = request.args.get("search_string")
+    films = []
+    for row in films_records:
+        if search_string != None:
+            cursor.execute(
+                "SELECT c.name FROM category c JOIN film_category fc ON c.id_category = fc.category_id_category JOIN film f ON f.id_film = fc.film_id_film WHERE f.id_film = %s", [row[0]])
+            films.append(Film(row, cursor.fetchall()[0]))
+        else:
+            films.append(Film(row, [0]))
+    cursor.close()
+    connection.close()
+    return render_template("main_page.html", films=films, logged_user=logged_user(user_records, user_reviews_count), search_string=search_string)
+
+@app.route("/register", methods=["GET", "POST"])
+@login_not_required
+def register():
+    """Route called when user wants to register a new account."""
+    checker = request.args.get("checker", default="True", type=str) == "True"
+    message = request.args.get("message", default="", type=str)
+    if request.method == "POST":
+        if not request.form.get("name"):
+            return redirect(url_for("register", checker="False", message="Imię jest wymagane!"))
+        name = request.form.get("name")
+        if not is_valid_name_surname(name):
+            return redirect(url_for("register", checker="False", message="Podane imię jest niepoprawne! Nie powinno ono zawierać znaków specjalnych i co najmnniej dwa znaki!"))
+        surname = request.form.get("surname")
+        if not request.form.get("surname"):
+            return redirect(url_for("register", checker="False", message="Nazwisko jest wymagane!"))
+        if not is_valid_name_surname(surname):
+            return redirect(url_for("register", checker="False", message="Podane nazwisko jest niepoprawne! Nie powinno ono zawierać znaków specjalnych i co najmniej dwa znaki!"))
+        username = request.form.get("username")
+        if not request.form.get("username"):
+            return redirect(url_for("register", checker="False", message="Nazwa użytkownika jest wymagana!"))
+        email = request.form.get("email")
+        if not request.form.get("email"):
+            return redirect(url_for("register", checker="False", message="Email jest wymagany!"))
+        if not is_valid_mail(email):
+            return redirect(url_for("register", checker="False", message="Podany email jest niepoprawny!"))
+        password = request.form.get("password")
+        if not request.form.get("password"):
+            return redirect(url_for("register", checker="False", message="Hasło jest wymagane!"))
+        if not correct_password(password):
+            return redirect(url_for("register", checker="False", message="Podane hasło jest niepoprawne! Powinno ono zawierać co najmniej 8 znaków, jedną dużą literę oraz znak specjalny."))
+        connection = psycopg2.connect(url)
+        cursor = connection.cursor()
+        cursor.execute('SELECT * FROM \"User\" WHERE mail = %s', [email])
+        email_check = cursor.fetchone()
+        if email_check:
+            return redirect(url_for("register", checker="False", message="Podany email jest już zarejestrowany!"))
+        else:
+            salt_length = 12
+            hashed_password = generate_password_hash(
+                password, salt_length=salt_length, method='sha256')
+            cursor.execute('INSERT INTO \"User\" (mail, password, username, name, surname, rank_id_rank)'
+                           'VALUES(%s, %s, %s, %s, %s, %s)',
+                           [email, hashed_password, username, name, surname, 1])
+            connection.commit()
+            cursor.close()
+            connection.close()
+        return redirect("/login")
+    else:
+        return render_template("register.html", checker=checker, message=message)
+
+'''
 @app.route("/", methods=["GET", "POST"])
 @login_not_required
 def default():
@@ -189,6 +327,6 @@ def film_page():
 @login_required
 def add_review_form():
     return render_template("add_review.html", original_title='')
-
+'''
 if __name__ == "__main__":
     app.run()
