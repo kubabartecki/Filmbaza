@@ -52,29 +52,24 @@ def register():
         name = request.form.get("name")
         if not is_valid_name_surname(name):
             return redirect(url_for("register", checker="False", message="Podane imię jest niepoprawne! Nie powinno ono zawierać znaków specjalnych i co najmnniej dwa znaki!"))
-
         surname = request.form.get("surname")
         if not request.form.get("surname"):
             return redirect(url_for("register", checker="False", message="Nazwisko jest wymagane!"))
         if not is_valid_name_surname(surname):
             return redirect(url_for("register", checker="False", message="Podane nazwisko jest niepoprawne! Nie powinno ono zawierać znaków specjalnych i co najmniej dwa znaki!"))
-
         username = request.form.get("username")
         if not request.form.get("username"):
             return redirect(url_for("register", checker="False", message="Nazwa użytkownika jest wymagana!"))
-
         email = request.form.get("email")
         if not request.form.get("email"):
             return redirect(url_for("register", checker="False", message="Email jest wymagany!"))
         if not is_valid_mail(email):
             return redirect(url_for("register", checker="False", message="Podany email jest niepoprawny!"))
-
         password = request.form.get("password")
         if not request.form.get("password"):
             return redirect(url_for("register", checker="False", message="Hasło jest wymagane!"))
         if not correct_password(password):
             return redirect(url_for("register", checker="False", message="Podane hasło jest niepoprawne! Powinno ono zawierać co najmniej 8 znaków, jedną dużą literę oraz znak specjalny."))
-
         connection = psycopg2.connect(url)
         cursor = connection.cursor()
         cursor.execute('SELECT * FROM \"User\" WHERE mail = %s', [email])
