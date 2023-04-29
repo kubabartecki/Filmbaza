@@ -3,7 +3,7 @@ from config import DATABASE_URL
 from flask import Flask, session, render_template, redirect, request, url_for
 from flask_session import Session
 from werkzeug.security import check_password_hash, generate_password_hash
-from helpers import login_required, login_not_required, logged_user, Film, is_valid_name_surname, is_valid_mail, correct_password
+from helpers import login_required, login_not_required, logged_user, Film, Review, is_valid_name_surname, is_valid_mail, correct_password
 
 
 app = Flask(__name__)
@@ -39,7 +39,6 @@ def default():
     checker = request.args.get("checker", default="True", type=str) == "True"
     message = request.args.get("message", default="", type=str)
     return render_template("login.html", checker=checker, message=message)
-
 
 @app.route("/register", methods=["GET", "POST"])
 @login_not_required
@@ -181,8 +180,20 @@ def film_page():
     cursor.execute(
         "SELECT film.poster, film.title, film.director, film.year, film.description, STRING_AGG(country.name, ', ') countries, (SELECT AVG(review.stars) avg_grade FROM review WHERE review.film_id_film = film.id_film) FROM film_country JOIN film ON film.id_film = film_country.film_id_film JOIN country ON film_country.country_id_country = country.id_country WHERE film.id_film = %s GROUP BY film.id_film", [film_id])
     film_data = cursor.fetchone()
-    return render_template('film_page.html', id=film_id, album=film_data[0], original_title=film_data[1], director=film_data[2], year=film_data[3], description=film_data[4], country=film_data[5])
+    cursor.execute("SELECT u.username, r.description, r.stars FROM review r JOIN \"User\" u ON u.id_user = r.user_id_user WHERE r.film_id_film = %s;", [movie_id])
+    review_data = cursor.fetchall()
+    reviews = []
+    for row in review_data:
+        reviews.append(Review(row))
+    cursor.close()
+    connection.close()
+    return render_template('film_page.html', id=film_id, album=film_data[0], original_title=film_data[1], director=film_data[2], year=film_data[3], description=film_data[4], country=film_data[5], reviews=reviews)
 
+
+@app.route("/add_review_form", methods=["GET", "POST"])
+@login_required
+def add_review_form():
+    return render_template("add_review.html", original_title='')
 
 if __name__ == "__main__":
     app.run()

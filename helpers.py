@@ -94,3 +94,9 @@ class Film():
         print(f"description: {self.description}")
         print(f"avg_grade: {self.avg_grade}")
         print(f"tags: {self.tags}")
+
+class Review():
+    def __init__(self, records):
+        self.autor = records[0]
+        self.description = records[1]
+        self.grade = records[2]
