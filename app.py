@@ -51,63 +51,6 @@ def default():
     connection.close()
     return render_template("unloggedd.html", films=films, search_string=search_string)
 
-@app.route("/login", methods=["GET", "POST"])
-@login_not_required
-def login():
-    checker = request.args.get("checker", default="True", type=str) == "True"
-    message = request.args.get("message", default="", type=str)
-    return render_template("login.html", checker=checker, message=message)
-
-@app.route("/register", methods=["GET", "POST"])
-@login_not_required
-def register():
-    """Route called when user wants to register a new account."""
-    checker = request.args.get("checker", default="True", type=str) == "True"
-    message = request.args.get("message", default="", type=str)
-    if request.method == "POST":
-        if not request.form.get("name"):
-            return redirect(url_for("register", checker="False", message="Imię jest wymagane!"))
-        name = request.form.get("name")
-        if not is_valid_name_surname(name):
-            return redirect(url_for("register", checker="False", message="Podane imię jest niepoprawne! Nie powinno ono zawierać znaków specjalnych i co najmnniej dwa znaki!"))
-        surname = request.form.get("surname")
-        if not request.form.get("surname"):
-            return redirect(url_for("register", checker="False", message="Nazwisko jest wymagane!"))
-        if not is_valid_name_surname(surname):
-            return redirect(url_for("register", checker="False", message="Podane nazwisko jest niepoprawne! Nie powinno ono zawierać znaków specjalnych i co najmniej dwa znaki!"))
-        username = request.form.get("username")
-        if not request.form.get("username"):
-            return redirect(url_for("register", checker="False", message="Nazwa użytkownika jest wymagana!"))
-        email = request.form.get("email")
-        if not request.form.get("email"):
-            return redirect(url_for("register", checker="False", message="Email jest wymagany!"))
-        if not is_valid_mail(email):
-            return redirect(url_for("register", checker="False", message="Podany email jest niepoprawny!"))
-        password = request.form.get("password")
-        if not request.form.get("password"):
-            return redirect(url_for("register", checker="False", message="Hasło jest wymagane!"))
-        if not correct_password(password):
-            return redirect(url_for("register", checker="False", message="Podane hasło jest niepoprawne! Powinno ono zawierać co najmniej 8 znaków, jedną dużą literę oraz znak specjalny."))
-        connection = psycopg2.connect(url)
-        cursor = connection.cursor()
-        cursor.execute('SELECT * FROM \"User\" WHERE mail = %s', [email])
-        email_check = cursor.fetchone()
-        if email_check:
-            return redirect(url_for("register", checker="False", message="Podany email jest już zarejestrowany!"))
-        else:
-            salt_length = 12
-            hashed_password = generate_password_hash(
-                password, salt_length=salt_length, method='sha256')
-            cursor.execute('INSERT INTO \"User\" (mail, password, username, name, surname, rank_id_rank)'
-                           'VALUES(%s, %s, %s, %s, %s, %s)',
-                           [email, hashed_password, username, name, surname, 1])
-            connection.commit()
-            cursor.close()
-            connection.close()
-        return redirect("/login")
-    else:
-        return render_template("register.html", checker=checker, message=message)
-
 @app.route("/main_page", methods=["GET", "POST"])
 @login_not_required
 def main_page():
@@ -199,8 +142,68 @@ def film_page():
     connection.close()
     return render_template('film_page.html', id=film_id, album=film_data[0], original_title=film_data[1], director=film_data[2], year=film_data[3], description=film_data[4], country=film_data[5], reviews=reviews)
 
+@app.route("/add_review_form", methods=["GET", "POST"])
+def add_review_form():
+    if session.get("user_id") is None:
+        return redirect("/login")
+    return render_template("add_review.html", original_title='')
 
+@app.route("/login", methods=["GET", "POST"])
+@login_not_required
+def login():
+    checker = request.args.get("checker", default="True", type=str) == "True"
+    message = request.args.get("message", default="", type=str)
+    return render_template("login.html", checker=checker, message=message)
 
+@app.route("/register", methods=["GET", "POST"])
+@login_not_required
+def register():
+    """Route called when user wants to register a new account."""
+    checker = request.args.get("checker", default="True", type=str) == "True"
+    message = request.args.get("message", default="", type=str)
+    if request.method == "POST":
+        if not request.form.get("name"):
+            return redirect(url_for("register", checker="False", message="Imię jest wymagane!"))
+        name = request.form.get("name")
+        if not is_valid_name_surname(name):
+            return redirect(url_for("register", checker="False", message="Podane imię jest niepoprawne! Nie powinno ono zawierać znaków specjalnych i co najmnniej dwa znaki!"))
+        surname = request.form.get("surname")
+        if not request.form.get("surname"):
+            return redirect(url_for("register", checker="False", message="Nazwisko jest wymagane!"))
+        if not is_valid_name_surname(surname):
+            return redirect(url_for("register", checker="False", message="Podane nazwisko jest niepoprawne! Nie powinno ono zawierać znaków specjalnych i co najmniej dwa znaki!"))
+        username = request.form.get("username")
+        if not request.form.get("username"):
+            return redirect(url_for("register", checker="False", message="Nazwa użytkownika jest wymagana!"))
+        email = request.form.get("email")
+        if not request.form.get("email"):
+            return redirect(url_for("register", checker="False", message="Email jest wymagany!"))
+        if not is_valid_mail(email):
+            return redirect(url_for("register", checker="False", message="Podany email jest niepoprawny!"))
+        password = request.form.get("password")
+        if not request.form.get("password"):
+            return redirect(url_for("register", checker="False", message="Hasło jest wymagane!"))
+        if not correct_password(password):
+            return redirect(url_for("register", checker="False", message="Podane hasło jest niepoprawne! Powinno ono zawierać co najmniej 8 znaków, jedną dużą literę oraz znak specjalny."))
+        connection = psycopg2.connect(url)
+        cursor = connection.cursor()
+        cursor.execute('SELECT * FROM \"User\" WHERE mail = %s', [email])
+        email_check = cursor.fetchone()
+        if email_check:
+            return redirect(url_for("register", checker="False", message="Podany email jest już zarejestrowany!"))
+        else:
+            salt_length = 12
+            hashed_password = generate_password_hash(
+                password, salt_length=salt_length, method='sha256')
+            cursor.execute('INSERT INTO \"User\" (mail, password, username, name, surname, rank_id_rank)'
+                           'VALUES(%s, %s, %s, %s, %s, %s)',
+                           [email, hashed_password, username, name, surname, 1])
+            connection.commit()
+            cursor.close()
+            connection.close()
+        return redirect("/login")
+    else:
+        return render_template("register.html", checker=checker, message=message)
 
 '''
 @app.route("/", methods=["GET", "POST"])
