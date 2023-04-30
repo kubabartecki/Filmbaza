@@ -29,7 +29,7 @@
 
           <div class="container; text-center" style="background-color: rgb(175, 175, 175); height: fit-content; margin-left: 1vw;">
 
-            <form method="POST" action="/add_review"> 
+            <form method="POST" action="/add_review_form"> 
               <div class="row" style="padding-top: 2vh;">
                           
                   <p style="float: left; padding-right: 1vw;">Recenzja: 
@@ -49,10 +49,6 @@
 
             <div class="row text-center">             
               <p>Reżyser: {{director}}</p>
-            </div>
-
-            <div class="row text-center">             
-              <p>Producent: {{producer}}</p>
             </div>
        
             <div class="row text-center">             
@@ -86,7 +82,7 @@
                    
             <div class="overflow-auto my-3" style="background-color: rgb(216, 216, 216); max-width: 80vw; max-height: 60vh;">
               <h1>Recenzje:</h1>
-              {% for review in review_list %}                    
+              {% for review in reviews %}                    
                       <div class="mx-3 my-3" style="height: 26vh; background-color: rgb(235, 235, 235);">                                 
                                   
                         <div class="mx-1 my-1" style="height: 25vh; width: 58vw; float: left;">
@@ -97,7 +93,7 @@
 
                         <div class="mx-1 my-1 text-center" style="height: 25vh; width: 10vw; float: left;">
                           <h3 style="padding-top: 3vh;">OCENA</h3>
-                          <h4>{{reviev.grade}} / 10</h4>
+                          <h4>{{review.grade}} / 10</h4>
                           <button type="button" class="btn btn-secondary">Zobacz</button> <!-- TODO -->
   
                         </div>
