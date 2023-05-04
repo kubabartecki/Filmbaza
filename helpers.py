@@ -52,6 +52,18 @@ def get_rank_name(rank):
         return "Filmowiec"
     elif rank == 4:
         return "Filmomaniak"
+
+def get_rank_id(reviews):
+    """The function returns the id of rank based on the number of reviews."""
+    if reviews >= 0 and reviews <= 10:
+        return 1
+    elif reviews >= 11 and reviews <= 50:
+        return 2
+    elif reviews >= 51 and reviews <= 100:
+        return 3
+    elif reviews > 100:
+        return 4
+
     
 class logged_user():
     """Class used to improve code readability and to make it easier to pass values about logged user to the frontend."""
