@@ -82,7 +82,6 @@ class logged_user():
     """Class used to improve code readability and to make it easier to pass values about logged user to the frontend."""
 
     def __init__(self, records, user_reviews_count):
-        print(records, user_reviews_count)
         self.username = records[0][3]
         self.name = records[0][4]
         self.surname = records[0][5]
