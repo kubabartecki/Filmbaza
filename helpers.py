@@ -42,7 +42,6 @@ def login_not_required(f):
             return redirect("/home")
     return decorated_function
 
-
 def get_rank_name(rank):
     """The function returns the string equivalent of rank."""
     if rank == 1:
@@ -53,8 +52,7 @@ def get_rank_name(rank):
         return "Filmowiec"
     elif rank == 4:
         return "Filmomaniak"
-
-
+    
 class logged_user():
     """Class used to improve code readability and to make it easier to pass values about logged user to the frontend."""
 
