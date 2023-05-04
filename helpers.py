@@ -1,4 +1,4 @@
-import re
+import re, psycopg2
 from flask import redirect, session
 from functools import wraps
 
@@ -64,11 +64,25 @@ def get_rank_id(reviews):
     elif reviews > 100:
         return 4
 
+def update_rank(url, user_id):
+    """The function updates user rank in database."""
+    connection = psycopg2.connect(url)
+    cursor = connection.cursor()
+    cursor.execute("SELECT COUNT(ID_REVIEW) FROM \"review\" INNER JOIN  \"User\" as u ON \"review\".User_ID_USER = u.ID_USER WHERE u.ID_USER = %s", [
+                   session["user_id"]])
+    reviews = cursor.fetchone()[0]
+    rank_id = get_rank_id(reviews)
+    cursor.execute(
+        "UPDATE \"User\" SET rank_id_rank = %s WHERE id_user = %s;", [rank_id, user_id])
+    connection.commit()
+    cursor.close()
+    connection.close()
     
 class logged_user():
     """Class used to improve code readability and to make it easier to pass values about logged user to the frontend."""
 
     def __init__(self, records, user_reviews_count):
+        print(records, user_reviews_count)
         self.username = records[0][3]
         self.name = records[0][4]
         self.surname = records[0][5]

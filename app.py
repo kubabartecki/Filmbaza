@@ -3,7 +3,7 @@ from config import DATABASE_URL
 from flask import Flask, session, render_template, redirect, request, url_for
 from flask_session import Session
 from werkzeug.security import check_password_hash, generate_password_hash
-from helpers import login_required, login_not_required, logged_user, Film, Review, is_valid_name_surname, is_valid_mail, correct_password
+from helpers import login_required, login_not_required, logged_user, Film, Review, is_valid_name_surname, is_valid_mail, correct_password, update_rank
 
 
 app = Flask(__name__)
@@ -86,6 +86,7 @@ def main_page():
 @login_required
 def home():
     """Main page of the website for logged user."""
+    update_rank(url, session["user_id"])
     connection = psycopg2.connect(url)
     cursor = connection.cursor()
     cursor.execute(
@@ -94,7 +95,6 @@ def home():
     cursor.execute("SELECT COUNT(ID_REVIEW) FROM \"review\" INNER JOIN  \"User\" as u ON \"review\".User_ID_USER = u.ID_USER WHERE u.ID_USER = %s", [
                    session["user_id"]])
     user_reviews_count = cursor.fetchall()
-    # tutaj i w innych miejscach gdzie beda recenzje bedzie trzeba dodac czy przypadkiem ktos nie awansowal, a wtedy trzeba zmienic range
     cursor.execute("SELECT film.ID_FILM, film.poster, film.title, film.director, film.year, film.description, STRING_AGG(country.name, ', ') countries, (SELECT AVG(review.stars) avg_grade FROM review WHERE review.film_id_film = film.id_film) FROM film_country JOIN film ON film.id_film = film_country.film_id_film JOIN country ON film_country.country_id_country = country.id_country GROUP BY film.id_film;")
     films_records = cursor.fetchall()
     search_string = request.args.get("search_string")
