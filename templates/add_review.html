@@ -23,7 +23,7 @@
                 </textarea>
             </div>
 
-            <div class="mb-3 mt-3" style="width: 20vw; margin-left: 18vw;">
+            <div class="mb-3 mt-3" style="width: 42vw; margin-left: 8vw;">
 
                 <label for="stars">Ocena:</label>
                 <select id="stars" name="stars">
@@ -43,8 +43,33 @@
                 <button type="submit" class="btn btn-primary">Dodaj</button>
 
             </div>
-
         </form>
+        
+        <button type="button" class="btn btn-primary" style="margin-left: 70vw; width: 8vw;" data-bs-toggle="modal" data-bs-target="#cautionModal">Powrót</button><!-- TODO idk czy to powinno wracać na main_page czy na film_page w którym było się przedtem-->
+        
+
+          <div class="modal fade" id="cautionModal" tabindex="-1" aria-labelledby="exampleModalLabel" aria-hidden="true">
+            <div class="modal-dialog modal-dialog-centered">
+              <div class="modal-content">
+                  
+                <div class="modal-header">
+                  <h1 class="modal-title fs-5" id="exampleModalLabel">Uwaga!</h1>
+                </div>
+                    
+                <div class="modal-body">
+                  Po przejściu <!-- TODO idk czy to powinno wracać na main_page czy na film_page w którym było się przedtem--> wpisane dane zostaną utracone!
+                </div>
+                
+                <div class="modal-footer">
+                  <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Zostań</button>
+                  <a href="/"> <!-- TODO idk czy to powinno wracać na main_page czy na film_page w którym było się przedtem-->
+                    <button type="button" class="btn btn-primary">Przejdź mimo to</button>
+                  </a>
+                </div>
+
+              </div>
+            </div>
+          </div>
     </div>
   </body>
   </html>
