@@ -151,6 +151,13 @@ def film_page():
 def add_review_form():
     if session.get("user_id") is None:
         return redirect("/login")
+    '''movie_id = request.form.get('nazwa buttona frontu')
+    connection = psycopg2.connect(url)
+    cursor = connection.cursor()
+    cursor.execute("SELECT film.title FROM film WHERE film.id_film = %s", [movie_id])
+    original_title = cursor.fetchone()[0]
+    cursor.close()
+    connection.close()'''
     return render_template("add_review.html", original_title='')
 
 @app.route("/add_review", methods=["GET", "POST"])
@@ -167,9 +174,22 @@ def add_review():
         if stars < 0 or stars > 10 or isinstance(stars, int) == False:
             return redirect("/add_review_form")
         description = request.form.get("description").strip()
-        print(stars, description)
+        if len(description) <= 1 or len(description) > 500000:
+            return redirect("/add_review_form")
+        '''movie_id = request.form.get('nazwa buttona frontu')
+        connection = psycopg2.connect(url)
+        cursor = connection.cursor()
+        cursor.execute("INSERT INTO review (description, stars, user_id_user, film_id_film) VALUES (%s, %s, %s, %s);", [description, stars, session["user_id"], movie_id])
+        connection.commit()
+        cursor.close()
+        connection.close()'''
+        # Tu powinien być powrót na stronę filmu, jednakże trzeba przechować w jakimś buttonie id filmu
         return render_template("add_review.html", original_title='')
 
+@app.route("/add_catalog", methods=["GET", "POST"])
+@login_required
+def add_catalog():
+    return render_template("add_catalog.html")
 
 @app.route("/login", methods=["GET", "POST"])
 @login_not_required
