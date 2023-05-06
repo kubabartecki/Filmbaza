@@ -12,10 +12,10 @@
 
 <body style="background-color: lightgrey;">
 
-    <div class="text" style="margin-top: 3vh; margin-left: 20vw; margin-right: 40vw; width: 50vw;">
+    <div class="text" style="margin-top: 1vh; margin-left: 20vw; margin-right: 40vw; width: 50vw;">
         <h2>Dodaj film</h2>
 
-        <form action="/add_film" method="post" style="margin-bottom: 3vh;">
+        <form action="/add_film" method="post" style="margin-bottom: 1vh;">
 
             <div class="mb-3 mt-3" style="width: 20vw;">
                 <h5>Tytuł</h5>
@@ -54,12 +54,39 @@
             </div>
 
             <div class="mb-3 mt-3" style="width: 20vw;">
-                <h5>Okładka (link)</h5>
+                <h5>Okładka (link)s</h5>
                 <input type="text" class="form-control" name="album_link">
             </div>
 
             <button type="submit" class="btn btn-primary">Dodaj</button>
         </form>
+        <div>
+            <button type="button" class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#cautionModal">Powrót do strony głównej</button>
+        </div>
+        
+        <div class="modal fade" id="cautionModal" tabindex="-1" aria-labelledby="exampleModalLabel" aria-hidden="true">
+            <div class="modal-dialog modal-dialog-centered">
+                <div class="modal-content">
+                    
+                <div class="modal-header">
+                    <h1 class="modal-title fs-5" id="exampleModalLabel">Uwaga!</h1>
+                </div>
+                    
+                <div class="modal-body">
+                    Po przejściu na stronę główną wpisane dane zostaną utracone!
+                </div>
+                
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Zostań</button>
+                    <a href="/main_page">
+                    <button type="button" class="btn btn-primary">Przejdź mimo to</button>
+                    </a>
+                </div>
+
+                </div>
+            </div>
+        </div>
+
     </div>
   </body>
   </html>

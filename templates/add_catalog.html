@@ -60,7 +60,34 @@
           {% endfor %}
 
           <button type="submit" class="btn btn-primary">Dodaj</button>
+          
+        
     </div>
   </form>
+  <div>
+    <button type="button" style="margin-left: 75vw;" class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#cautionModal">Powrót do strony głównej</button>
+  </div>
+      <div class="modal fade" id="cautionModal" tabindex="-1" aria-labelledby="exampleModalLabel" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered">
+          <div class="modal-content">
+              
+            <div class="modal-header">
+              <h1 class="modal-title fs-5" id="exampleModalLabel">Uwaga!</h1>
+            </div>
+              
+            <div class="modal-body">
+              Po przejściu na stronę główną wpisane dane zostaną utracone!
+            </div>
+            
+            <div class="modal-footer">
+              <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Zostań</button>
+              <a href="/main_page">
+                <button type="button" class="btn btn-primary">Przejdź mimo to</button>
+              </a>
+            </div>
+
+          </div>
+        </div>
+      </div>
   </body>
   </html>
