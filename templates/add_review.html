@@ -15,7 +15,7 @@
     <div class="text-center" style="margin-top: 3vh; margin-left: 20vw; margin-right: 40vw; width: 50vw;">
         <h2>Dodaj recenzję do filmu: "{{original_title}}"</h2>
 
-        <form action="/add_review" method="post">
+        <form action="/add_review_form" method="post">
 
             <div class="mb-3 mt-3" style="width: 20vw;">
                 <textarea name="description" style="width: 60vw; height: 80vh;">
@@ -57,12 +57,12 @@
                 </div>
                     
                 <div class="modal-body">
-                  Po przejściu <!-- TODO idk czy to powinno wracać na main_page czy na film_page w którym było się przedtem--> wpisane dane zostaną utracone!
+                  Po przejściu na stronę główną wpisane dane zostaną utracone!
                 </div>
                 
                 <div class="modal-footer">
                   <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Zostań</button>
-                  <a href="/"> <!-- TODO idk czy to powinno wracać na main_page czy na film_page w którym było się przedtem-->
+                  <a href="/main_page"> <!-- TODO idk czy to powinno wracać na main_page czy na film_page w którym było się przedtem-->
                     <button type="button" class="btn btn-primary">Przejdź mimo to</button>
                   </a>
                 </div>
