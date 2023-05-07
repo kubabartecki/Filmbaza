@@ -131,7 +131,10 @@ def search():
 @app.route("/film_page", methods=["GET", "POST"])
 def film_page():
     """Route used to display details about a specific movie."""
-    movie_id = request.form.get('film_butt')
+    if request.method == "GET":
+        movie_id = request.args.get("movie_id")
+    else:
+        movie_id = request.form.get('film_butt')
     connection = psycopg2.connect(url)
     cursor = connection.cursor()
     cursor.execute("SELECT * FROM film WHERE id_film = %s", [movie_id])
@@ -153,48 +156,55 @@ def film_page():
         actors.append(actor[0])
     cursor.close()
     connection.close()
-    return render_template('film_page.html', id=film_id, album=film_data[0], original_title=film_data[1], director=film_data[2], year=film_data[3], description=film_data[4], country=film_data[5], reviews=reviews, actors=actors)
+    return render_template('film_page.html', id=film_id, album=film_data[0], original_title=film_data[1], director=film_data[2], year=film_data[3], description=film_data[4], country=film_data[5], reviews=reviews, actors=actors, movie_id=movie_id)
 
 
 @app.route("/add_review_form", methods=["GET", "POST"])
 def add_review_form():
+    """Route used to display the form for adding a new review for a film with a given id."""
     if session.get("user_id") is None:
         return redirect("/login")
-    '''movie_id = request.form.get('nazwa buttona frontu')
+    if request.method == "GET":
+        movie_id = request.args.get("movie_id")
+    else:
+        movie_id = request.form.get('movie_id')
     connection = psycopg2.connect(url)
     cursor = connection.cursor()
-    cursor.execute("SELECT film.title FROM film WHERE film.id_film = %s", [movie_id])
+    cursor.execute(
+        "SELECT film.title FROM film WHERE film.ID_FILM = %s", [movie_id])
     original_title = cursor.fetchone()[0]
     cursor.close()
-    connection.close()'''
-    return render_template("add_review.html", original_title='')
+    connection.close()
+    return render_template("add_review.html", original_title=original_title, movie_id=movie_id)
 
 
 @app.route("/add_review", methods=["GET", "POST"])
 @login_required
 def add_review():
+    """Route used to handle the form for adding a new review."""
+    movie_id = request.form.get('movie_id')
     if not request.form.get("stars"):
-        return redirect("/add_review_form")
+        return redirect(f"/add_review_form?movie_id={movie_id}")
     if not request.form.get("description"):
-        return redirect("/add_review_form")
+        return redirect(f"/add_review_form?movie_id={movie_id}")
     try:
         stars = int(request.form.get("stars"))
     except:
-        return redirect("/add_review_form")
+        return redirect(f"/add_review_form?movie_id={movie_id}")
     if stars < 0 or stars > 10 or isinstance(stars, int) == False:
-        return redirect("/add_review_form")
+        return redirect(f"/add_review_form?movie_id={movie_id}")
     description = request.form.get("description").strip()
     if len(description) <= 1 or len(description) > 500000:
-        return redirect("/add_review_form")
-    '''movie_id = request.form.get('nazwa buttona frontu')
-        connection = psycopg2.connect(url)
-        cursor = connection.cursor()
-        cursor.execute("INSERT INTO review (description, stars, user_id_user, film_id_film) VALUES (%s, %s, %s, %s);", [description, stars, session["user_id"], movie_id])
-        connection.commit()
-        cursor.close()
-        connection.close()'''
-    # Tu powinien być powrót na stronę filmu, jednakże trzeba przechować w jakimś buttonie id filmu
-    return render_template("add_review.html", original_title='')
+        return redirect(f"/add_review_form?movie_id={movie_id}")
+    connection = psycopg2.connect(url)
+    cursor = connection.cursor()
+    cursor.execute("INSERT INTO review (description, stars, user_id_user, film_id_film) VALUES (%s, %s, %s, %s);", [
+                   description, stars, session["user_id"], movie_id])
+    connection.commit()
+    cursor.close()
+    connection.close()
+    update_rank(url, session["user_id"])
+    return redirect(f"/film_page?movie_id={movie_id}")
 
 
 @app.route("/add_catalog", methods=["GET", "POST"])
@@ -260,7 +270,8 @@ def register():
         return redirect("/login")
     else:
         return render_template("register.html", checker=checker, message=message)
-    
+
+
 @app.route("/add_film", methods=["GET", "POST"])
 @login_required
 def add_film():
