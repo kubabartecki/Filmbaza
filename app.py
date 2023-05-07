@@ -43,12 +43,7 @@ def default():
     search_string = request.args.get("search_string")
     films = []
     for row in films_records:
-        if search_string != None:
-            cursor.execute(
-                "SELECT c.name FROM category c JOIN film_category fc ON c.id_category = fc.category_id_category JOIN film f ON f.id_film = fc.film_id_film WHERE f.id_film = %s", [row[0]])
-            films.append(Film(row, cursor.fetchall()[0]))
-        else:
-            films.append(Film(row, [0]))
+        films.append(Film(row, [0]))
     cursor.close()
     connection.close()
     return render_template("unloggedd.html", films=films, search_string=search_string)
@@ -104,12 +99,7 @@ def home():
     search_string = request.args.get("search_string")
     films = []
     for row in films_records:
-        if search_string != None:
-            cursor.execute(
-                "SELECT c.name FROM category c JOIN film_category fc ON c.id_category = fc.category_id_category JOIN film f ON f.id_film = fc.film_id_film WHERE f.id_film = %s", [row[0]])
-            films.append(Film(row, cursor.fetchall()[0]))
-        else:
-            films.append(Film(row, [0]))
+        films.append(Film(row, [0]))
     cursor.close()
     connection.close()
     return render_template("main_page.html", films=films, logged_user=logged_user(user_records, user_reviews_count), search_string=search_string)
@@ -117,9 +107,9 @@ def home():
 
 @app.route("/search", methods=["GET", "POST"])
 def search():
-    """Route used to search for movies, redirects to home page with search_string appended as a query string parameter."""
+    """Route used to search for movies by title, redirects to home page with search_string appended as a query string parameter."""
     if request.method == "POST":
-        search_string = request.form.get("search_string").strip().title()
+        search_string = request.form.get("search_string").strip().upper()
         if search_string != "":
             if session.get("user_id") is None:
                 return redirect(f"/?search_string={search_string}")
