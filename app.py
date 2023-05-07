@@ -22,6 +22,7 @@ def clear_session():
     """Ensuring that the user is not logged in."""
     session.clear()
 
+
 @app.after_request
 def after_request(response):
     """Ensure responses aren't cached."""
@@ -29,6 +30,7 @@ def after_request(response):
     response.headers["Expires"] = 0
     response.headers["Pragma"] = "no-cache"
     return response
+
 
 @app.route("/", methods=["GET", "POST"])
 @login_not_required
@@ -50,6 +52,7 @@ def default():
     cursor.close()
     connection.close()
     return render_template("unloggedd.html", films=films, search_string=search_string)
+
 
 @app.route("/main_page", methods=["GET", "POST"])
 @login_not_required
@@ -82,6 +85,7 @@ def main_page():
     else:
         return redirect("/login")
 
+
 @app.route("/home", methods=["GET", "POST"])
 @login_required
 def home():
@@ -110,6 +114,7 @@ def home():
     connection.close()
     return render_template("main_page.html", films=films, logged_user=logged_user(user_records, user_reviews_count), search_string=search_string)
 
+
 @app.route("/search", methods=["GET", "POST"])
 def search():
     """Route used to search for movies, redirects to home page with search_string appended as a query string parameter."""
@@ -122,10 +127,14 @@ def search():
                 return redirect(f"/home?search_string={search_string}")
     return redirect("/home")
 
+
 @app.route("/film_page", methods=["GET", "POST"])
 def film_page():
     """Route used to display details about a specific movie."""
-    movie_id = request.form.get('film_butt')
+    if request.method == "GET":
+        movie_id = request.args.get("movie_id")
+    else:
+        movie_id = request.form.get('film_butt')
     connection = psycopg2.connect(url)
     cursor = connection.cursor()
     cursor.execute("SELECT * FROM film WHERE id_film = %s", [movie_id])
@@ -133,63 +142,76 @@ def film_page():
     cursor.execute(
         "SELECT film.poster, film.title, film.director, film.year, film.description, STRING_AGG(country.name, ', ') countries, (SELECT AVG(review.stars) avg_grade FROM review WHERE review.film_id_film = film.id_film) FROM film_country JOIN film ON film.id_film = film_country.film_id_film JOIN country ON film_country.country_id_country = country.id_country WHERE film.id_film = %s GROUP BY film.id_film", [film_id])
     film_data = cursor.fetchone()
-    cursor.execute("SELECT u.username, r.description, r.stars FROM review r JOIN \"User\" u ON u.id_user = r.user_id_user WHERE r.film_id_film = %s;", [movie_id])
+    cursor.execute(
+        "SELECT u.username, r.description, r.stars FROM review r JOIN \"User\" u ON u.id_user = r.user_id_user WHERE r.film_id_film = %s;", [movie_id])
     review_data = cursor.fetchall()
     reviews = []
     for row in review_data:
         reviews.append(Review(row))
-    cursor.execute("SELECT A.name FROM actor A JOIN film_actor FA ON A.id_actor=FA.actor_id_actor JOIN film F ON FA.film_ID_film=F.id_film WHERE F.id_film = %s;", [movie_id])
+    cursor.execute(
+        "SELECT A.name FROM actor A JOIN film_actor FA ON A.id_actor=FA.actor_id_actor JOIN film F ON FA.film_ID_film=F.id_film WHERE F.id_film = %s;", [movie_id])
     actors_data = cursor.fetchall()
     actors = []
     for actor in actors_data:
         actors.append(actor[0])
     cursor.close()
     connection.close()
-    return render_template('film_page.html', id=film_id, album=film_data[0], original_title=film_data[1], director=film_data[2], year=film_data[3], description=film_data[4], country=film_data[5], reviews=reviews, actors=actors)
+    return render_template('film_page.html', id=film_id, album=film_data[0], original_title=film_data[1], director=film_data[2], year=film_data[3], description=film_data[4], country=film_data[5], reviews=reviews, actors=actors, movie_id=movie_id)
+
 
 @app.route("/add_review_form", methods=["GET", "POST"])
 def add_review_form():
+    """Route used to display the form for adding a new review for a film with a given id."""
     if session.get("user_id") is None:
         return redirect("/login")
-    '''movie_id = request.form.get('nazwa buttona frontu')
+    if request.method == "GET":
+        movie_id = request.args.get("movie_id")
+    else:
+        movie_id = request.form.get('movie_id')
     connection = psycopg2.connect(url)
     cursor = connection.cursor()
-    cursor.execute("SELECT film.title FROM film WHERE film.id_film = %s", [movie_id])
+    cursor.execute(
+        "SELECT film.title FROM film WHERE film.ID_FILM = %s", [movie_id])
     original_title = cursor.fetchone()[0]
     cursor.close()
-    connection.close()'''
-    return render_template("add_review.html", original_title='')
+    connection.close()
+    return render_template("add_review.html", original_title=original_title, movie_id=movie_id)
+
 
 @app.route("/add_review", methods=["GET", "POST"])
 @login_required
 def add_review():
-        if not request.form.get("stars"):
-            return redirect("/add_review_form")
-        if not request.form.get("description"):
-            return redirect("/add_review_form")
-        try:
-            stars = int(request.form.get("stars"))
-        except:
-            return redirect("/add_review_form")
-        if stars < 0 or stars > 10 or isinstance(stars, int) == False:
-            return redirect("/add_review_form")
-        description = request.form.get("description").strip()
-        if len(description) <= 1 or len(description) > 500000:
-            return redirect("/add_review_form")
-        '''movie_id = request.form.get('nazwa buttona frontu')
-        connection = psycopg2.connect(url)
-        cursor = connection.cursor()
-        cursor.execute("INSERT INTO review (description, stars, user_id_user, film_id_film) VALUES (%s, %s, %s, %s);", [description, stars, session["user_id"], movie_id])
-        connection.commit()
-        cursor.close()
-        connection.close()'''
-        # Tu powinien być powrót na stronę filmu, jednakże trzeba przechować w jakimś buttonie id filmu
-        return render_template("add_review.html", original_title='')
+    """Route used to handle the form for adding a new review."""
+    movie_id = request.form.get('movie_id')
+    if not request.form.get("stars"):
+        return redirect(f"/add_review_form?movie_id={movie_id}")
+    if not request.form.get("description"):
+        return redirect(f"/add_review_form?movie_id={movie_id}")
+    try:
+        stars = int(request.form.get("stars"))
+    except:
+        return redirect(f"/add_review_form?movie_id={movie_id}")
+    if stars < 0 or stars > 10 or isinstance(stars, int) == False:
+        return redirect(f"/add_review_form?movie_id={movie_id}")
+    description = request.form.get("description").strip()
+    if len(description) <= 1 or len(description) > 500000:
+        return redirect(f"/add_review_form?movie_id={movie_id}")
+    connection = psycopg2.connect(url)
+    cursor = connection.cursor()
+    cursor.execute("INSERT INTO review (description, stars, user_id_user, film_id_film) VALUES (%s, %s, %s, %s);", [
+                   description, stars, session["user_id"], movie_id])
+    connection.commit()
+    cursor.close()
+    connection.close()
+    update_rank(url, session["user_id"])
+    return redirect(f"/film_page?movie_id={movie_id}")
+
 
 @app.route("/add_catalog", methods=["GET", "POST"])
 @login_required
 def add_catalog():
     return render_template("add_catalog.html")
+
 
 @app.route("/login", methods=["GET", "POST"])
 @login_not_required
@@ -197,6 +219,7 @@ def login():
     checker = request.args.get("checker", default="True", type=str) == "True"
     message = request.args.get("message", default="", type=str)
     return render_template("login.html", checker=checker, message=message)
+
 
 @app.route("/register", methods=["GET", "POST"])
 @login_not_required
@@ -247,6 +270,13 @@ def register():
         return redirect("/login")
     else:
         return render_template("register.html", checker=checker, message=message)
-    
+
+
+@app.route("/add_film", methods=["GET", "POST"])
+@login_required
+def add_film():
+    return render_template("add_film.html")
+
+
 if __name__ == "__main__":
     app.run()
