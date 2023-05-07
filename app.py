@@ -260,6 +260,11 @@ def register():
         return redirect("/login")
     else:
         return render_template("register.html", checker=checker, message=message)
+    
+@app.route("/add_film", methods=["GET", "POST"])
+@login_required
+def add_film():
+    return render_template("add_film.html")
 
 
 if __name__ == "__main__":
