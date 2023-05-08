@@ -47,26 +47,27 @@
         <button type="button" class="btn btn-primary">Logowanie</button>
       </a>
     </form>
-    
-    <div  style="margin-top: 1vh;">
-      <button type="button" class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#cautionModal">Powrót do strony głównej</button>
+
+    <div style="margin-top: 1vh;">
+      <button type="button" class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#cautionModal">Powrót do
+        strony głównej</button>
     </div>
-      
+
     <div class="modal fade" id="cautionModal" tabindex="-1">
       <div class="modal-dialog modal-dialog-centered">
         <div class="modal-content">
-            
+
           <div class="modal-header">
             <h1 class="modal-title fs-5" id="exampleModalLabel">Uwaga!</h1>
           </div>
-            
+
           <div class="modal-body">
             Po przejściu na stronę główną wpisane dane zostaną utracone!
           </div>
-          
+
           <div class="modal-footer">
             <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Zostań</button>
-            <a href="/main_page">
+            <a href="/">
               <button type="button" class="btn btn-primary">Przejdź mimo to</button>
             </a>
           </div>
@@ -77,9 +78,12 @@
 
   </div>
   <div class="text-center" style="margin-top: 3vh;">
-    {% if checker == False %} <!-- needed checker value provided when rendering template (default True) It will be set on False, when input data are wrong -->
-      <p style="color: red;">{{message}}</p> <!-- needed message string provided when rendering template (deafult "/0") -->
+    {% if checker == False %}
+    <!-- needed checker value provided when rendering template (default True) It will be set on False, when input data are wrong -->
+    <p style="color: red;">{{message}}</p>
+    <!-- needed message string provided when rendering template (deafult "/0") -->
     {% endif %}
   </div>
 </body>
+
 </html>
