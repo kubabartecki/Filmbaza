@@ -37,15 +37,18 @@
   </div>
 
   <div class="text-center" style="margin-top: 1vh;">
-    <a href="/main_page">
-      <button type="button" class="btn btn-primary" >Powrót do strony głównej</button>
+    <a href="/">
+      <button type="button" class="btn btn-primary">Powrót do strony głównej</button>
     </a>
   </div>
 
   <div class="text-center" style="margin-top: 3vh;">
-    {% if checker == False %} <!-- needed checker value provided when rendering template (default True) It will be set on False, when input data are wrong -->
-      <p style="color: red;">{{message}}</p> <!-- needed message string provided when rendering template (deafult "/0") -->
+    {% if checker == False %}
+    <!-- needed checker value provided when rendering template (default True) It will be set on False, when input data are wrong -->
+    <p style="color: red;">{{message}}</p>
+    <!-- needed message string provided when rendering template (deafult "/0") -->
     {% endif %}
   </div>
-  </body>
-  </html>
+</body>
+
+</html>
