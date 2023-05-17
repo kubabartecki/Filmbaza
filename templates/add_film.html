@@ -40,7 +40,7 @@
 
             <div class="mb-3 mt-3" style="width: 60vw;">
                 <h5>Aktorzy</h5>
-                <select name="cars" id="cars" style="width: 21vw;" multiple multiselect-search="true">
+                <select name="actors" id="actors" style="width: 21vw; height: 5vh;" multiple multiselect-search="true">
                     {% for actor in actors %}
                         <option value={{actor.id}}>{{actor.name}}</option>
                     {% endfor %}
@@ -48,9 +48,14 @@
                 <button type="button" class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#actorModal">Dodaj aktora spoza listy</button>
             </div>
 
-            <div class="mb-3 mt-3" style="width: 20vw;">
+            <div class="mb-3 mt-3" style="width: 60vw;">
                 <h5>Kategorie</h5>
-                <input type="text" class="form-control" name="categories">
+                <select name="categories" id="categories" style="width: 21vw; height: 5vh;" multiple multiselect-search="true">
+                    {% for category in categories %}
+                        <option value={{category.id}}>{{category.name}}</option>
+                    {% endfor %}
+                </select>
+                <button type="button" class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#categoryModal">Dodaj kategorię spoza listy</button>
             </div>
 
             <div class="mb-3 mt-3" style="width: 20vw;"> 
@@ -122,6 +127,34 @@
                         <div class="mb-3 mt-3" style="width: 20vw;">
                             <h5>Zdjęcie (link)</h5>
                             <input type="text" class="form-control" name="photo">
+                        </div>
+
+                        <button type="submit" class="btn btn-primary">Dodaj</button>
+                    </form>
+                </div>
+                
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Powrót</button>
+                </div>
+
+                </div>
+            </div>
+        </div>
+
+        <div class="modal fade" id="categoryModal" tabindex="-1" aria-labelledby="exampleModalLabel" aria-hidden="true">
+            <div class="modal-dialog modal-dialog-centered">
+                <div class="modal-content">
+                    
+                <div class="modal-header">
+                    <h1 class="modal-title fs-5" id="exampleModalLabel">Dodawanie kategorii</h1>
+                </div>
+                    
+                <div class="modal-body">
+                    <form action="/add_category" method="post" style="margin-bottom: 1vh;">
+
+                        <div class="mb-3 mt-3" style="width: 20vw;">
+                            <h5>Nazwa</h5>
+                            <input type="text" class="form-control" name="name">
                         </div>
 
                         <button type="submit" class="btn btn-primary">Dodaj</button>
