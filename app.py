@@ -200,7 +200,16 @@ def add_review():
 @app.route("/add_catalog", methods=["GET", "POST"])
 @login_required
 def add_catalog():
-    return render_template("add_catalog.html")
+    connection = psycopg2.connect(url)
+    cursor = connection.cursor()
+    cursor.execute("SELECT film.ID_FILM, film.poster, film.title, film.director, film.year, film.description, STRING_AGG(country.name, ', ') countries, (SELECT AVG(review.stars) avg_grade FROM review WHERE review.film_id_film = film.id_film) FROM film_country JOIN film ON film.id_film = film_country.film_id_film JOIN country ON film_country.country_id_country = country.id_country GROUP BY film.id_film;")
+    films_records = cursor.fetchall()
+    films = []
+    for row in films_records:
+        films.append(Film(row, [0]))
+    cursor.close()
+    connection.close()
+    return render_template("add_catalog.html", films=films)
 
 
 @app.route("/login", methods=["GET", "POST"])
