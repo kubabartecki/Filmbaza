@@ -3,7 +3,7 @@ from config import DATABASE_URL
 from flask import Flask, session, render_template, redirect, request, url_for
 from flask_session import Session
 from werkzeug.security import check_password_hash, generate_password_hash
-from helpers import correct_year, login_required, login_not_required, logged_user, Film, Review, is_valid_name_surname, is_valid_mail, correct_password, update_rank, Category
+from helpers import correct_year, login_required, login_not_required, logged_user, Film, Review,Category,Actor, is_valid_name_surname, is_valid_mail, correct_password, update_rank
 
 
 app = Flask(__name__)
@@ -286,10 +286,19 @@ def add_film():
     message = request.args.get("message", default="", type=str)
     connection = psycopg2.connect(url)
     cursor = connection.cursor()
-    cursor.execute("SELECT c.name FROM category c")
+
+    cursor.execute("SELECT * FROM category")
     categories_records = cursor.fetchall()
     categories = []
-    print(categories_records)
+    for row in categories_records:
+        categories.append(Category(row))
+
+    cursor.execute("SELECT * FROM actor")
+    actors_records = cursor.fetchall()
+    actors = []
+    for row in actors_records:
+        actors.append(Actor(row))
+
     cursor.close()
     connection.close()
     if request.method == "POST":
@@ -311,16 +320,26 @@ def add_film():
             print(title,director,year,country)
             return redirect("/add_film")
     else:
-        return render_template("add_film.html", checker=checker, message=message,categories=categories_records)
+        return render_template("add_film.html", checker=checker, message=message,categories=categories, actors=actors)
 
 
 @app.route("/add_actor", methods=["GET", "POST"])
 @login_required
 def add_actor():
     name = request.form.get("name")
-    
+    connection = psycopg2.connect(url)
+    cursor = connection.cursor()
+    cursor.execute("INSERT INTO actor (name) VALUES (%s);", [name])
+    connection.commit()
+    cursor.close()
+    connection.close()
     print (name)
     return redirect("/add_film")
+
+@app.route("/add_film_form", methods=["GET", "POST"])
+@login_required
+def add_film_form():
+    return redirect("/add_film_form")
 
 if __name__ == "__main__":
     app.run()

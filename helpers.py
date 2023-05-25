@@ -134,6 +134,8 @@ class Category:
         self.id = records[0]
         self.name = records[1]
     
-    def Show(self):
-        print(f"ID: {self.id}")
-        print(f"Name: {self.name}")
+class Actor:
+    def __init__(self, records):
+        self.id = records[0]
+        self.name = records[1]
+
