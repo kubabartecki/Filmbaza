@@ -100,6 +100,8 @@ def home():
     films = []
     for row in films_records:
         films.append(Film(row, [0]))
+    catalogs = cursor.execute('SELECT c.title FROM catalog c WHERE c.User_ID_USER=%s;', [session['user_id']])
+    print(catalogs)
     cursor.close()
     connection.close()
     return render_template("main_page.html", films=films, logged_user=logged_user(user_records, user_reviews_count), search_string=search_string, catalog='Wszystkie')
@@ -216,8 +218,19 @@ def add_catalog():
 def add_catalog_form():
     if not request.form.get("name"):
         return redirect("/add_catalog")
-    catalog_name = request.form.get("name")
-    print(catalog_name)
+    catalog_name = request.form.get("name").strip()
+    if not request.form.getlist("films"):
+        return redirect("/add_catalog")
+    connection = psycopg2.connect(url)
+    cursor = connection.cursor()
+    #cursor.execute("INSERT INTO catalog (User_ID_USER, title) VALUES (%s, %s);", [session["user_id"], catalog_name])
+    films = request.form.getlist("films")
+    #for film_id in films:
+        #cursor.execute("INSERT INTO film_catalog (Film_ID_FILM, Catalog_ID_CATALOG) VALUES (%s, %s);", [film_id])
+        
+    cursor.close()
+    connection.close()
+    return redirect("/home")
 
 
 @app.route("/login", methods=["GET", "POST"])
