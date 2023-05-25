@@ -15,6 +15,11 @@ def is_valid_name_surname(name):
     match = re.match(pattern, name)
     return match is not None
 
+def correct_year(year):
+    pattern = r"^\d{4}$"
+    match = re.match(pattern, year)
+    return match is not None
+
 
 def correct_password(password):
     pattern = r'^(?=.*[A-Z])(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&ęóąśłżźćńĘÓĄŚŁŻŹĆŃ]{8,}$'

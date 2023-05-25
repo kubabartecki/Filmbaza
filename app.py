@@ -265,8 +265,34 @@ def register():
 @app.route("/add_film", methods=["GET", "POST"])
 @login_required
 def add_film():
-    return render_template("add_film.html")
+    checker = request.args.get("checker", default="True", type=str) == "True"
+    message = request.args.get("message", default="", type=str)
+    if request.method == "POST":
+        if not request.form.get("title"):
+            return redirect(url_for("add_film", checker="False", message="Nazwa filmu jest wymagana!"))
+        title = request.form.get("title")
+        if not request.form.get("director"):
+            return redirect(url_for("add_film", checker="False", message="Podanie reżysera jest wymagane!"))
+        director = request.form.get("director")
+        if not request.form.get("year"):
+            return redirect(url_for("add_film", checker="False", message="Podanie roku jest wymagane!"))
+        year = request.form.get("year")
+        if not correct_year(year):
+            return redirect(url_for("add_film", checker="False", message="Podany rok jest niepoprawny!"))
+        else:
+            if not request.form.get("country"):
+                return redirect(url_for("add_film", checker="False", message="Podanie kraju jest wymagane!"))
+            country = request.form.get("country")
+            print(title,director,year,country)
+            return redirect("/add_film")
+    else:
+        return render_template("add_film.html", checker=checker, message=message)
 
+
+@app.route("/add_actor", methods=["GET", "POST"])
+@login_required
+def add_actor():
+    return redirect("/add_actor")
 
 if __name__ == "__main__":
     app.run()
