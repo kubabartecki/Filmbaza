@@ -55,7 +55,6 @@
                         <option value={{category.id}}>{{category.name}}</option>
                     {% endfor %}
                 </select>
-                <button type="button" class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#categoryModal">Dodaj kategorię spoza listy</button>
             </div>
 
             <div class="mb-3 mt-3" style="width: 20vw;"> 
@@ -113,21 +112,6 @@
                             <h5>Imię i Nazwisko</h5>
                             <input type="text" class="form-control" name="name">
                         </div>
-            
-                        <div class="mb-3 mt-3" style="width: 20vw;">
-                            <h5>Rok urodzenia</h5>
-                            <input type="text" class="form-control" name="year_of_birth">
-                        </div>
-            
-                        <div class="mb-3 mt-3" style="width: 20vw;">
-                            <h5>Rok śmierci (*)</h5>
-                            <input type="text" class="form-control" name="year_of_death">
-                        </div>
-            
-                        <div class="mb-3 mt-3" style="width: 20vw;">
-                            <h5>Zdjęcie (link)</h5>
-                            <input type="text" class="form-control" name="photo">
-                        </div>
 
                         <button type="submit" class="btn btn-primary">Dodaj</button>
                     </form>
@@ -140,35 +124,6 @@
                 </div>
             </div>
         </div>
-
-        <div class="modal fade" id="categoryModal" tabindex="-1" aria-labelledby="exampleModalLabel" aria-hidden="true">
-            <div class="modal-dialog modal-dialog-centered">
-                <div class="modal-content">
-                    
-                <div class="modal-header">
-                    <h1 class="modal-title fs-5" id="exampleModalLabel">Dodawanie kategorii</h1>
-                </div>
-                    
-                <div class="modal-body">
-                    <form action="/add_category" method="post" style="margin-bottom: 1vh;">
-
-                        <div class="mb-3 mt-3" style="width: 20vw;">
-                            <h5>Nazwa</h5>
-                            <input type="text" class="form-control" name="name">
-                        </div>
-
-                        <button type="submit" class="btn btn-primary">Dodaj</button>
-                    </form>
-                </div>
-                
-                <div class="modal-footer">
-                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Powrót</button>
-                </div>
-
-                </div>
-            </div>
-        </div>
-
     </div>
   </body>
   </html>
