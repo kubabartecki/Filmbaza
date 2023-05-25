@@ -128,3 +128,12 @@ class Review():
         self.autor = records[0]
         self.description = records[1]
         self.grade = records[2]
+
+class Category:
+    def __init__(self, records):
+        self.id = records[0]
+        self.name = records[1]
+    
+    def Show(self):
+        print(f"ID: {self.id}")
+        print(f"Name: {self.name}")
