@@ -211,6 +211,14 @@ def add_catalog():
     connection.close()
     return render_template("add_catalog.html", films=films)
 
+@app.route("/add_catalog_form", methods=['GET', 'POST'])
+@login_required
+def add_catalog_form():
+    if not request.form.get("name"):
+        return redirect("/add_catalog")
+    catalog_name = request.form.get("name")
+    print(catalog_name)
+
 
 @app.route("/login", methods=["GET", "POST"])
 @login_not_required
