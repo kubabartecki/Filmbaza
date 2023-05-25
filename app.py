@@ -3,7 +3,7 @@ from config import DATABASE_URL
 from flask import Flask, session, render_template, redirect, request, url_for
 from flask_session import Session
 from werkzeug.security import check_password_hash, generate_password_hash
-from helpers import login_required, login_not_required, logged_user, Film, Review, is_valid_name_surname, is_valid_mail, correct_password, update_rank
+from helpers import correct_year, login_required, login_not_required, logged_user, Film, Review, is_valid_name_surname, is_valid_mail, correct_password, update_rank
 
 
 app = Flask(__name__)
@@ -102,7 +102,7 @@ def home():
         films.append(Film(row, [0]))
     cursor.close()
     connection.close()
-    return render_template("main_page.html", films=films, logged_user=logged_user(user_records, user_reviews_count), search_string=search_string)
+    return render_template("main_page.html", films=films, logged_user=logged_user(user_records, user_reviews_count), search_string=search_string, catalog='Wszystkie')
 
 
 @app.route("/search", methods=["GET", "POST"])
@@ -200,7 +200,24 @@ def add_review():
 @app.route("/add_catalog", methods=["GET", "POST"])
 @login_required
 def add_catalog():
-    return render_template("add_catalog.html")
+    connection = psycopg2.connect(url)
+    cursor = connection.cursor()
+    cursor.execute("SELECT film.ID_FILM, film.poster, film.title, film.director, film.year, film.description, STRING_AGG(country.name, ', ') countries, (SELECT AVG(review.stars) avg_grade FROM review WHERE review.film_id_film = film.id_film) FROM film_country JOIN film ON film.id_film = film_country.film_id_film JOIN country ON film_country.country_id_country = country.id_country GROUP BY film.id_film;")
+    films_records = cursor.fetchall()
+    films = []
+    for row in films_records:
+        films.append(Film(row, [0]))
+    cursor.close()
+    connection.close()
+    return render_template("add_catalog.html", films=films)
+
+@app.route("/add_catalog_form", methods=['GET', 'POST'])
+@login_required
+def add_catalog_form():
+    if not request.form.get("name"):
+        return redirect("/add_catalog")
+    catalog_name = request.form.get("name")
+    print(catalog_name)
 
 
 @app.route("/login", methods=["GET", "POST"])
@@ -265,8 +282,34 @@ def register():
 @app.route("/add_film", methods=["GET", "POST"])
 @login_required
 def add_film():
-    return render_template("add_film.html")
+    checker = request.args.get("checker", default="True", type=str) == "True"
+    message = request.args.get("message", default="", type=str)
+    if request.method == "POST":
+        if not request.form.get("title"):
+            return redirect(url_for("add_film", checker="False", message="Nazwa filmu jest wymagana!"))
+        title = request.form.get("title")
+        if not request.form.get("director"):
+            return redirect(url_for("add_film", checker="False", message="Podanie reżysera jest wymagane!"))
+        director = request.form.get("director")
+        if not request.form.get("year"):
+            return redirect(url_for("add_film", checker="False", message="Podanie roku jest wymagane!"))
+        year = request.form.get("year")
+        if not correct_year(year):
+            return redirect(url_for("add_film", checker="False", message="Podany rok jest niepoprawny!"))
+        else:
+            if not request.form.get("country"):
+                return redirect(url_for("add_film", checker="False", message="Podanie kraju jest wymagane!"))
+            country = request.form.get("country")
+            print(title,director,year,country)
+            return redirect("/add_film")
+    else:
+        return render_template("add_film.html", checker=checker, message=message)
 
+
+@app.route("/add_actor", methods=["GET", "POST"])
+@login_required
+def add_actor():
+    return redirect("/add_actor")
 
 if __name__ == "__main__":
     app.run()
