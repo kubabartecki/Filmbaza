@@ -102,7 +102,7 @@ def home():
         films.append(Film(row, [0]))
     cursor.close()
     connection.close()
-    return render_template("main_page.html", films=films, logged_user=logged_user(user_records, user_reviews_count), search_string=search_string)
+    return render_template("main_page.html", films=films, logged_user=logged_user(user_records, user_reviews_count), search_string=search_string, catalog='Wszystkie')
 
 
 @app.route("/search", methods=["GET", "POST"])
