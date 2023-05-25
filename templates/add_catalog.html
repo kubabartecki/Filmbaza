@@ -32,62 +32,41 @@
 
         </div>
       </form>
+          <select name="films" id="films" style="width: 21vw; height: 5vh;" multiple multiselect-search="true">
+            {% for film in films %}
+                <option value={{film.id}}>{{film.title}}</option>
+            {% endfor %}
+          </select>
 
-          {% for film in films %}
-            {% for tag in film.tags if search_string == None or search_string == tag %}                   
-              <div class="mx-3 my-3" style="height: 26vh; background-color: rgb(235, 235, 235);">
-                                        
-                <div class="mx-1 my-1" style="height: 25vh; width: 10vw; float: left;">
-                  <img src={{film.album}} width="150vw" height="185vh" title="album">
-                </div>
-                                        
-                <div class="mx-1 my-1" style="height: 25vh; width: 55vw; float: left;">
-                  <h3>{{film.title}} by {{film.director}}</h3>
-                  <h5>{{film.year}} {{film.country}}</h5>                                    
-                      {{film.description}}
-                </div>
-                                        
-                <div class="mx-1 my-1 text-center" style="height: 25vh; width: 10vw; float: left;">
-                  <h3 style="padding-top: 4vh;">OCENA</h3>
-                  <h4>{{film.avg_grade}} / 10</h4>
-
-                  <label for="add_this">Dodaj</label>
-                  <input type="checkbox" id="add_this" name={{film.title}} value={{film.id}}>
-
-                </div>
-              </div>
-            {% endfor %}                  
-          {% endfor %}
-
-          <button type="submit" class="btn btn-primary">Dodaj</button>
-          
-        
+          <button type="submit" class="btn btn-primary">Dodaj</button>           
     </div>
   </form>
+  
   <div>
     <button type="button" style="margin-left: 75vw;" class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#cautionModal">Powrót do strony głównej</button>
   </div>
-      <div class="modal fade" id="cautionModal" tabindex="-1" aria-labelledby="exampleModalLabel" aria-hidden="true">
-        <div class="modal-dialog modal-dialog-centered">
-          <div class="modal-content">
+    
+  <div class="modal fade" id="cautionModal" tabindex="-1" aria-labelledby="exampleModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+      <div class="modal-content">
               
-            <div class="modal-header">
-              <h1 class="modal-title fs-5" id="exampleModalLabel">Uwaga!</h1>
-            </div>
-              
-            <div class="modal-body">
-              Po przejściu na stronę główną wpisane dane zostaną utracone!
-            </div>
-            
-            <div class="modal-footer">
-              <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Zostań</button>
-              <a href="/main_page">
-                <button type="button" class="btn btn-primary">Przejdź mimo to</button>
-              </a>
-            </div>
-
-          </div>
+        <div class="modal-header">
+          <h1 class="modal-title fs-5" id="exampleModalLabel">Uwaga!</h1>
         </div>
+              
+        <div class="modal-body">
+          Po przejściu na stronę główną wpisane dane zostaną utracone!
+         </div>
+            
+        <div class="modal-footer">
+          <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Zostań</button>
+          <a href="/main_page">
+            <button type="button" class="btn btn-primary">Przejdź mimo to</button>
+          </a>
+        </div>
+
       </div>
+    </div>
+  </div>
   </body>
   </html>
