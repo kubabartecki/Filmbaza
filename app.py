@@ -167,7 +167,6 @@ def add_review_form():
     message = request.args.get("message", default="", type=str)
     if request.method == "GET":
         movie_id = request.args.get("movie_id")
-
     else:
         movie_id = request.form.get('movie_id')
     connection = psycopg2.connect(url)
@@ -186,18 +185,23 @@ def add_review():
     """Route used to handle the form for adding a new review."""
     movie_id = request.form.get('movie_id')
     if not request.form.get("stars"):
-        return redirect(f"/add_review_form?movie_id={movie_id}")
+        message = "Nie podano oceny!"
+        return redirect(url_for("add_review_form", movie_id=movie_id, checker=False, message=message))
     if not request.form.get("description"):
-        return redirect(f"/add_review_form?movie_id={movie_id}")
+        message = "Nie podano opisu!"
+        return redirect(url_for("add_review_form", movie_id=movie_id, checker=False, message=message))
     try:
         stars = int(request.form.get("stars"))
     except:
-        return redirect(f"/add_review_form?movie_id={movie_id}")
+        message = "Ocena ma być liczbą!"
+        return redirect(url_for("add_review_form", movie_id=movie_id, checker=False, message=message))
     if stars < 0 or stars > 10 or isinstance(stars, int) == False:
-        return redirect(f"/add_review_form?movie_id={movie_id}")
+        message = "Ocena ma być liczbą całkowitą!"
+        return redirect(url_for("add_review_form", movie_id=movie_id, checker=False, message=message))
     description = request.form.get("description").strip()
     if len(description) <= 1 or len(description) > 500000:
-        return redirect(f"/add_review_form?movie_id={movie_id}")
+        message = "Długość opisu musi zawierać od 2 do 500000 liter!"
+        return redirect(url_for("add_review_form", movie_id=movie_id, checker=False, message=message))
     connection = psycopg2.connect(url)
     cursor = connection.cursor()
     cursor.execute("INSERT INTO review (description, stars, user_id_user, film_id_film) VALUES (%s, %s, %s, %s);", [
@@ -229,18 +233,22 @@ def add_catalog():
 @login_required
 def add_catalog_form():
     if not request.form.get("name"):
-        return redirect("/add_catalog")
+        message = "Nie podano nazwy katalogu!"
+        return redirect(url_for("add_catalog", message=message, checker=False))
     catalog_name = request.form.get("name").strip()
     if catalog_name == 'Wszystkie':
-        return redirect("/add_catalog")
+        message = "Taka nazwa katalogu jest zarezerwowana!"
+        return redirect(url_for("add_catalog", message=message, checker=False))
     connection = psycopg2.connect(url)
     cursor = connection.cursor()
     cursor.execute('SELECT c.ID_CATALOG FROM catalog c WHERE c.title = %s AND c.User_ID_USER = %s', [catalog_name, session["user_id"]])
     matches = cursor.fetchall()
     if len(matches) > 0:
-        return redirect("/add_catalog")
+        message = "Taka nazwa katalogu już istnieje!"
+        return redirect(url_for("add_catalog", message=message, checker=False))
     if not request.form.getlist("films"):
-        return redirect("/add_catalog")
+        message = "Nie wybrano żadnego filmu!"
+        return redirect(url_for("add_catalog", message=message, checker=False))
     cursor.execute("INSERT INTO catalog (User_ID_USER, title) VALUES (%s, %s);", [session["user_id"], catalog_name])
     films = request.form.getlist("films")
     for film_id in films:
