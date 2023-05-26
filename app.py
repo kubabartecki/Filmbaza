@@ -107,10 +107,11 @@ def home():
     cursor.execute('SELECT c.ID_CATALOG, c.title FROM catalog c WHERE c.User_ID_USER=%s;', [session['user_id']])
     catalogs_records = cursor.fetchall()
     catalogs = []
-    for row in catalogs_records:
-        catalogs.append(catalog(row[0], row[1]))
-    if (len(catalogs) < 1):
+    if len(catalogs_records) < 1:
         catalogs = [catalog('1', 'Wszystkie')]
+    else:
+        for row in catalogs_records:
+            catalogs.append(catalog(row[0], row[1])) 
     cursor.close()
     connection.close()
     return render_template("main_page.html", films=films, logged_user=logged_user(user_records, user_reviews_count, catalogs), search_string=search_string, catalog='Wszystkie')
