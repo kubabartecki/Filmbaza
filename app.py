@@ -233,10 +233,14 @@ def add_catalog_form():
     catalog_name = request.form.get("name").strip()
     if catalog_name == 'Wszystkie':
         return redirect("/add_catalog")
-    if not request.form.getlist("films"):
-        return redirect("/add_catalog")
     connection = psycopg2.connect(url)
     cursor = connection.cursor()
+    cursor.execute('SELECT c.ID_CATALOG FROM catalog c WHERE c.title = %s AND c.User_ID_USER = %s', [catalog_name, session["user_id"]])
+    matches = cursor.fetchall()
+    if len(matches) > 0:
+        return redirect("/add_catalog")
+    if not request.form.getlist("films"):
+        return redirect("/add_catalog")
     cursor.execute("INSERT INTO catalog (User_ID_USER, title) VALUES (%s, %s);", [session["user_id"], catalog_name])
     films = request.form.getlist("films")
     for film_id in films:
