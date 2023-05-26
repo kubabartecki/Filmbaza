@@ -44,6 +44,14 @@
       </div>
     </form>
 
+    <div class="text-center" style="margin-top: 3vh;">
+      {% if checker == False %}
+      <!-- needed checker value provided when rendering template (default True) It will be set on False, when input data are wrong -->
+      <p style="color: red;">{{message}}</p>
+      <!-- needed message string provided when rendering template (deafult "/0") -->
+      {% endif %}
+    </div>
+    
     <button type="button" class="btn btn-primary" style="margin-left: 70vw; width: 8vw;" data-bs-toggle="modal"
       data-bs-target="#cautionModal">Powrót</button><!-- TODO idk czy to powinno wracać na main_page czy na film_page w którym było się przedtem-->
 
