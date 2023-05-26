@@ -163,8 +163,11 @@ def add_review_form():
     """Route used to display the form for adding a new review for a film with a given id."""
     if session.get("user_id") is None:
         return redirect("/login")
+    checker = request.args.get("checker", default="True", type=str) == "True"
+    message = request.args.get("message", default="", type=str)
     if request.method == "GET":
         movie_id = request.args.get("movie_id")
+
     else:
         movie_id = request.form.get('movie_id')
     connection = psycopg2.connect(url)
@@ -174,7 +177,7 @@ def add_review_form():
     original_title = cursor.fetchone()[0]
     cursor.close()
     connection.close()
-    return render_template("add_review.html", original_title=original_title, movie_id=movie_id)
+    return render_template("add_review.html", original_title=original_title, movie_id=movie_id, checker=checker, message=message)
 
 
 @app.route("/add_review", methods=["GET", "POST"])
@@ -209,6 +212,8 @@ def add_review():
 @app.route("/add_catalog", methods=["GET", "POST"])
 @login_required
 def add_catalog():
+    checker = request.args.get("checker", default="True", type=str) == "True"
+    message = request.args.get("message", default="", type=str)
     connection = psycopg2.connect(url)
     cursor = connection.cursor()
     cursor.execute("SELECT film.ID_FILM, film.poster, film.title, film.director, film.year, film.description, STRING_AGG(country.name, ', ') countries, (SELECT AVG(review.stars) avg_grade FROM review WHERE review.film_id_film = film.id_film) FROM film_country JOIN film ON film.id_film = film_country.film_id_film JOIN country ON film_country.country_id_country = country.id_country GROUP BY film.id_film;")
@@ -218,7 +223,7 @@ def add_catalog():
         films.append(Film(row, [0]))
     cursor.close()
     connection.close()
-    return render_template("add_catalog.html", films=films)
+    return render_template("add_catalog.html", films=films, checker=checker, message=message)
 
 @app.route("/add_catalog_form", methods=['GET', 'POST'])
 @login_required
