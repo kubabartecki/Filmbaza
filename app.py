@@ -231,6 +231,8 @@ def add_catalog_form():
     if not request.form.get("name"):
         return redirect("/add_catalog")
     catalog_name = request.form.get("name").strip()
+    if catalog_name == 'Wszystkie':
+        return redirect("/add_catalog")
     if not request.form.getlist("films"):
         return redirect("/add_catalog")
     connection = psycopg2.connect(url)
