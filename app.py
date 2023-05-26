@@ -3,7 +3,7 @@ from config import DATABASE_URL
 from flask import Flask, session, render_template, redirect, request, url_for
 from flask_session import Session
 from werkzeug.security import check_password_hash, generate_password_hash
-from helpers import correct_year, login_required, login_not_required, logged_user, Film, Review, Category, Actor, catalog, is_valid_name_surname, is_valid_mail, correct_password, update_rank
+from helpers import correct_year, login_required, login_not_required, logged_user, Film, Review, Category, Actor, catalog, is_valid_name_surname, is_valid_mail, correct_password, update_rank, is_valid_link
 
 
 app = Flask(__name__)
@@ -348,26 +348,8 @@ def add_film():
 
     cursor.close()
     connection.close()
-    if request.method == "POST":
-        if not request.form.get("title"):
-            return redirect(url_for("add_film", checker="False", message="Nazwa filmu jest wymagana!"))
-        title = request.form.get("title")
-        if not request.form.get("director"):
-            return redirect(url_for("add_film", checker="False", message="Podanie reżysera jest wymagane!"))
-        director = request.form.get("director")
-        if not request.form.get("year"):
-            return redirect(url_for("add_film", checker="False", message="Podanie roku jest wymagane!"))
-        year = request.form.get("year")
-        if not correct_year(year):
-            return redirect(url_for("add_film", checker="False", message="Podany rok jest niepoprawny!"))
-        else:
-            if not request.form.get("country"):
-                return redirect(url_for("add_film", checker="False", message="Podanie kraju jest wymagane!"))
-            country = request.form.get("country")
-            print(title,director,year,country)
-            return redirect("/add_film")
-    else:
-        return render_template("add_film.html", checker=checker, message=message,categories=categories, actors=actors)
+    
+    return render_template("add_film.html", checker=checker, message=message,categories=categories, actors=actors)
 
 
 @app.route("/add_actor", methods=["GET", "POST"])
@@ -386,7 +368,40 @@ def add_actor():
 @app.route("/add_film_form", methods=["GET", "POST"])
 @login_required
 def add_film_form():
-    return redirect("/add_film_form")
+    if request.method == "POST":
+        if not request.form.get("title"):
+            return redirect(url_for("add_film", checker="False", message="Nazwa filmu jest wymagana!"))
+        title = request.form.get("title")
+        if not request.form.get("director"):
+            return redirect(url_for("add_film", checker="False", message="Podanie reżysera jest wymagane!"))
+        director = request.form.get("director")
+        if not request.form.get("year"):
+            return redirect(url_for("add_film", checker="False", message="Podanie roku jest wymagane!"))
+        year = request.form.get("year")
+        if not correct_year(year):
+            return redirect(url_for("add_film", checker="False", message="Podany rok jest niepoprawny!"))
+        else:
+            if not request.form.get("country"):
+                return redirect(url_for("add_film", checker="False", message="Podanie kraju jest wymagane!"))
+            country = request.form.get("country")
+            if not request.form.getlist("actors"):
+                return redirect(url_for("add_film", checker="False" ,message="Nie wybrano żadnego aktora!"))
+            selected_actors = request.form.getlist('actors')
+            if not request.form.getlist("categories"):
+                return redirect(url_for("add_film", checker="False" ,message="Nie wybrano żadnej kategorii!"))
+            selected_categories = request.form.getlist('categories')
+            if not request.form.get("description"):
+                return redirect(url_for("add_film",checker="False", message="Nie wprowadzono opisu filmu!"))
+            description = request.form.get("description").strip()
+            if not request.form.get("album_link"):
+                return redirect(url_for("add_film", checker="False", message="Podanie linku do okładki filmu jest wymagane!"))
+            album_link = request.form.get("album_link")
+            if not is_valid_link(album_link):
+                return redirect(url_for("add_film", checker="False", message="Podany link jest niepoprawny!"))
+            print(selected_categories, selected_actors,description)
+            print(title,director,year,country)
+            print(album_link)
+            return redirect("/add_film")
 
 if __name__ == "__main__":
     app.run()
