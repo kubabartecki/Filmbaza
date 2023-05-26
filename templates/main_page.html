@@ -37,8 +37,8 @@
                     <form method="POST" action="/select_catalog" style="width: 30vw; margin-top: 1vh;">
                         <div class="input-group" style="width: 30vw; margin-left: 3vw;">
 
-                            <select style="width: 20vw">
-                                <option value="all" selected>Wszystkie</option>
+                            <select name=catalog_id style="width: 20vw">
+                                <option value="Wszystkie" selected>Wszystkie</option>
                                 {% for catalog in logged_user.catalogs %}
 
                                     <option value={{catalog.id}}>{{catalog.name}}</option>

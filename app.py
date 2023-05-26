@@ -3,7 +3,7 @@ from config import DATABASE_URL
 from flask import Flask, session, render_template, redirect, request, url_for
 from flask_session import Session
 from werkzeug.security import check_password_hash, generate_password_hash
-from helpers import correct_year, login_required, login_not_required, logged_user, Film, Review,Category,Actor, is_valid_name_surname, is_valid_mail, correct_password, update_rank
+from helpers import correct_year, login_required, login_not_required, logged_user, Film, Review,Category, Actor, catalog, is_valid_name_surname, is_valid_mail, correct_password, update_rank
 
 
 app = Flask(__name__)
@@ -92,21 +92,29 @@ def home():
         "SELECT * FROM \"User\" WHERE \"User\".id_user = %s", [session["user_id"]])
     user_records = cursor.fetchall()
     cursor.execute("SELECT COUNT(ID_REVIEW) FROM \"review\" INNER JOIN  \"User\" as u ON \"review\".User_ID_USER = u.ID_USER WHERE u.ID_USER = %s", [
-                   session["user_id"]])
+                session["user_id"]])
     user_reviews_count = cursor.fetchall()
-    cursor.execute("SELECT film.ID_FILM, film.poster, film.title, film.director, film.year, film.description, STRING_AGG(country.name, ', ') countries, (SELECT AVG(review.stars) avg_grade FROM review WHERE review.film_id_film = film.id_film) FROM film_country JOIN film ON film.id_film = film_country.film_id_film JOIN country ON film_country.country_id_country = country.id_country GROUP BY film.id_film;")
-    films_records = cursor.fetchall()
     search_string = request.args.get("search_string")
+    catalog_id = request.args.get("catalog_id")
+    if catalog_id == None or catalog_id == 'Wszystkie':
+        cursor.execute("SELECT film.ID_FILM, film.poster, film.title, film.director, film.year, film.description, STRING_AGG(country.name, ', ') countries, (SELECT AVG(review.stars) avg_grade FROM review WHERE review.film_id_film = film.id_film) FROM film_country JOIN film ON film.id_film = film_country.film_id_film JOIN country ON film_country.country_id_country = country.id_country GROUP BY film.id_film;")
+    else:
+        cursor.execute('SELECT film.ID_FILM, film.poster, film.title, film.director, film.year, film.description, STRING_AGG(country.name, %s) countries, (SELECT AVG(review.stars) avg_grade FROM review WHERE review.film_id_film = film.id_film) FROM film_country JOIN film ON film.id_film = film_country.film_id_film JOIN country ON film_country.country_id_country = country.id_country JOIN film_catalog ON film.ID_FILM=film_catalog.Film_ID_FILM WHERE film_catalog.Catalog_ID_CATALOG=%s GROUP BY film.id_film;', [', ', catalog_id])
+    films_records = cursor.fetchall()
     films = []
     for row in films_records:
         films.append(Film(row, [0]))
-    catalogs = cursor.execute('SELECT c.title FROM catalog c WHERE c.User_ID_USER=%s;', [session['user_id']])
-    print(catalogs)
+    cursor.execute('SELECT c.ID_CATALOG, c.title FROM catalog c WHERE c.User_ID_USER=%s;', [session['user_id']])
+    catalogs_records = cursor.fetchall()
+    catalogs = []
+    for row in catalogs_records:
+        catalogs.append(catalog(row[0], row[1]))
+    if (len(catalogs) < 1):
+        catalogs = [catalog('1', 'Wszystkie')]
     cursor.close()
     connection.close()
-    return render_template("main_page.html", films=films, logged_user=logged_user(user_records, user_reviews_count), search_string=search_string, catalog='Wszystkie')
-
-
+    return render_template("main_page.html", films=films, logged_user=logged_user(user_records, user_reviews_count, catalogs), search_string=search_string, catalog='Wszystkie')
+    
 @app.route("/search", methods=["GET", "POST"])
 def search():
     """Route used to search for movies by title, redirects to home page with search_string appended as a query string parameter."""
@@ -223,15 +231,21 @@ def add_catalog_form():
         return redirect("/add_catalog")
     connection = psycopg2.connect(url)
     cursor = connection.cursor()
-    #cursor.execute("INSERT INTO catalog (User_ID_USER, title) VALUES (%s, %s);", [session["user_id"], catalog_name])
+    cursor.execute("INSERT INTO catalog (User_ID_USER, title) VALUES (%s, %s);", [session["user_id"], catalog_name])
     films = request.form.getlist("films")
-    #for film_id in films:
-        #cursor.execute("INSERT INTO film_catalog (Film_ID_FILM, Catalog_ID_CATALOG) VALUES (%s, %s);", [film_id])
-        
+    for film_id in films:
+        cursor.execute("INSERT INTO film_catalog (Film_ID_FILM, Catalog_ID_CATALOG) VALUES (%s, COALESCE((SELECT catalog.ID_CATALOG FROM catalog WHERE catalog.User_ID_USER=%s AND catalog.title=%s), 1))", [film_id, session["user_id"], catalog_name])
+    connection.commit()
     cursor.close()
     connection.close()
     return redirect("/home")
 
+
+@app.route("/select_catalog", methods=["GET", "POST"])
+@login_required
+def select_catalog():
+    catalog_id = request.form.get("catalog_id")
+    return redirect(f"/home?catalog_id={catalog_id}")
 
 @app.route("/login", methods=["GET", "POST"])
 @login_not_required
