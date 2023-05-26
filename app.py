@@ -244,6 +244,8 @@ def add_catalog_form():
 @app.route("/select_catalog", methods=["GET", "POST"])
 @login_required
 def select_catalog():
+    if not request.form.get("catalog_id"):
+        return redirect('/home')
     catalog_id = request.form.get("catalog_id")
     return redirect(f"/home?catalog_id={catalog_id}")
 
