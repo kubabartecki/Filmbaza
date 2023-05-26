@@ -86,13 +86,19 @@ def update_rank(url, user_id):
 class logged_user():
     """Class used to improve code readability and to make it easier to pass values about logged user to the frontend."""
 
-    def __init__(self, records, user_reviews_count):
+    def __init__(self, records, user_reviews_count, catalogs):
         self.username = records[0][3]
         self.name = records[0][4]
         self.surname = records[0][5]
         self.rank = get_rank_name(records[0][6])
         self.no_review = user_reviews_count[0][0]
+        self.catalogs = catalogs
 
+class catalog():
+    def __init__(self, catalog_id, name):
+        self.id = catalog_id
+        self.name = name
+    
 
 class Film():
     """Class used to improve code readability and to make it easier to pass values about specific film to the frontend."""
@@ -128,3 +134,14 @@ class Review():
         self.autor = records[0]
         self.description = records[1]
         self.grade = records[2]
+
+class Category:
+    def __init__(self, records):
+        self.id = records[0]
+        self.name = records[1]
+    
+class Actor:
+    def __init__(self, records):
+        self.id = records[0]
+        self.name = records[1]
+

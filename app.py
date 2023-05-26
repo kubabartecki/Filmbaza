@@ -3,7 +3,7 @@ from config import DATABASE_URL
 from flask import Flask, session, render_template, redirect, request, url_for
 from flask_session import Session
 from werkzeug.security import check_password_hash, generate_password_hash
-from helpers import correct_year, login_required, login_not_required, logged_user, Film, Review, is_valid_name_surname, is_valid_mail, correct_password, update_rank
+from helpers import correct_year, login_required, login_not_required, logged_user, Film, Review, Category, Actor, catalog, is_valid_name_surname, is_valid_mail, correct_password, update_rank
 
 
 app = Flask(__name__)
@@ -92,19 +92,28 @@ def home():
         "SELECT * FROM \"User\" WHERE \"User\".id_user = %s", [session["user_id"]])
     user_records = cursor.fetchall()
     cursor.execute("SELECT COUNT(ID_REVIEW) FROM \"review\" INNER JOIN  \"User\" as u ON \"review\".User_ID_USER = u.ID_USER WHERE u.ID_USER = %s", [
-                   session["user_id"]])
+                session["user_id"]])
     user_reviews_count = cursor.fetchall()
-    cursor.execute("SELECT film.ID_FILM, film.poster, film.title, film.director, film.year, film.description, STRING_AGG(country.name, ', ') countries, (SELECT AVG(review.stars) avg_grade FROM review WHERE review.film_id_film = film.id_film) FROM film_country JOIN film ON film.id_film = film_country.film_id_film JOIN country ON film_country.country_id_country = country.id_country GROUP BY film.id_film;")
-    films_records = cursor.fetchall()
     search_string = request.args.get("search_string")
+    catalog_id = request.args.get("catalog_id")
+    if catalog_id == None or catalog_id == 'Wszystkie':
+        cursor.execute("SELECT film.ID_FILM, film.poster, film.title, film.director, film.year, film.description, STRING_AGG(country.name, ', ') countries, (SELECT AVG(review.stars) avg_grade FROM review WHERE review.film_id_film = film.id_film) FROM film_country JOIN film ON film.id_film = film_country.film_id_film JOIN country ON film_country.country_id_country = country.id_country GROUP BY film.id_film;")
+    else:
+        cursor.execute('SELECT film.ID_FILM, film.poster, film.title, film.director, film.year, film.description, STRING_AGG(country.name, %s) countries, (SELECT AVG(review.stars) avg_grade FROM review WHERE review.film_id_film = film.id_film) FROM film_country JOIN film ON film.id_film = film_country.film_id_film JOIN country ON film_country.country_id_country = country.id_country JOIN film_catalog ON film.ID_FILM=film_catalog.Film_ID_FILM WHERE film_catalog.Catalog_ID_CATALOG=%s GROUP BY film.id_film;', [', ', catalog_id])
+    films_records = cursor.fetchall()
     films = []
     for row in films_records:
         films.append(Film(row, [0]))
+    cursor.execute('SELECT c.ID_CATALOG, c.title FROM catalog c WHERE c.User_ID_USER=%s;', [session['user_id']])
+    catalogs_records = cursor.fetchall()
+    catalogs = []
+    if len(catalogs_records) >= 1:
+        for row in catalogs_records:
+            catalogs.append(catalog(row[0], row[1])) 
     cursor.close()
     connection.close()
-    return render_template("main_page.html", films=films, logged_user=logged_user(user_records, user_reviews_count), search_string=search_string, catalog='Wszystkie')
-
-
+    return render_template("main_page.html", films=films, logged_user=logged_user(user_records, user_reviews_count, catalogs), search_string=search_string, catalog='Wszystkie')
+    
 @app.route("/search", methods=["GET", "POST"])
 def search():
     """Route used to search for movies by title, redirects to home page with search_string appended as a query string parameter."""
@@ -154,8 +163,11 @@ def add_review_form():
     """Route used to display the form for adding a new review for a film with a given id."""
     if session.get("user_id") is None:
         return redirect("/login")
+    checker = request.args.get("checker", default="True", type=str) == "True"
+    message = request.args.get("message", default="", type=str)
     if request.method == "GET":
         movie_id = request.args.get("movie_id")
+
     else:
         movie_id = request.form.get('movie_id')
     connection = psycopg2.connect(url)
@@ -165,7 +177,7 @@ def add_review_form():
     original_title = cursor.fetchone()[0]
     cursor.close()
     connection.close()
-    return render_template("add_review.html", original_title=original_title, movie_id=movie_id)
+    return render_template("add_review.html", original_title=original_title, movie_id=movie_id, checker=checker, message=message)
 
 
 @app.route("/add_review", methods=["GET", "POST"])
@@ -200,6 +212,8 @@ def add_review():
 @app.route("/add_catalog", methods=["GET", "POST"])
 @login_required
 def add_catalog():
+    checker = request.args.get("checker", default="True", type=str) == "True"
+    message = request.args.get("message", default="", type=str)
     connection = psycopg2.connect(url)
     cursor = connection.cursor()
     cursor.execute("SELECT film.ID_FILM, film.poster, film.title, film.director, film.year, film.description, STRING_AGG(country.name, ', ') countries, (SELECT AVG(review.stars) avg_grade FROM review WHERE review.film_id_film = film.id_film) FROM film_country JOIN film ON film.id_film = film_country.film_id_film JOIN country ON film_country.country_id_country = country.id_country GROUP BY film.id_film;")
@@ -209,16 +223,41 @@ def add_catalog():
         films.append(Film(row, [0]))
     cursor.close()
     connection.close()
-    return render_template("add_catalog.html", films=films)
+    return render_template("add_catalog.html", films=films, checker=checker, message=message)
 
 @app.route("/add_catalog_form", methods=['GET', 'POST'])
 @login_required
 def add_catalog_form():
     if not request.form.get("name"):
         return redirect("/add_catalog")
-    catalog_name = request.form.get("name")
-    print(catalog_name)
+    catalog_name = request.form.get("name").strip()
+    if catalog_name == 'Wszystkie':
+        return redirect("/add_catalog")
+    connection = psycopg2.connect(url)
+    cursor = connection.cursor()
+    cursor.execute('SELECT c.ID_CATALOG FROM catalog c WHERE c.title = %s AND c.User_ID_USER = %s', [catalog_name, session["user_id"]])
+    matches = cursor.fetchall()
+    if len(matches) > 0:
+        return redirect("/add_catalog")
+    if not request.form.getlist("films"):
+        return redirect("/add_catalog")
+    cursor.execute("INSERT INTO catalog (User_ID_USER, title) VALUES (%s, %s);", [session["user_id"], catalog_name])
+    films = request.form.getlist("films")
+    for film_id in films:
+        cursor.execute("INSERT INTO film_catalog (Film_ID_FILM, Catalog_ID_CATALOG) VALUES (%s, COALESCE((SELECT catalog.ID_CATALOG FROM catalog WHERE catalog.User_ID_USER=%s AND catalog.title=%s), 1))", [film_id, session["user_id"], catalog_name])
+    connection.commit()
+    cursor.close()
+    connection.close()
+    return redirect("/home")
 
+
+@app.route("/select_catalog", methods=["GET", "POST"])
+@login_required
+def select_catalog():
+    if not request.form.get("catalog_id"):
+        return redirect('/home')
+    catalog_id = request.form.get("catalog_id")
+    return redirect(f"/home?catalog_id={catalog_id}")
 
 @app.route("/login", methods=["GET", "POST"])
 @login_not_required
@@ -284,6 +323,23 @@ def register():
 def add_film():
     checker = request.args.get("checker", default="True", type=str) == "True"
     message = request.args.get("message", default="", type=str)
+    connection = psycopg2.connect(url)
+    cursor = connection.cursor()
+
+    cursor.execute("SELECT * FROM category")
+    categories_records = cursor.fetchall()
+    categories = []
+    for row in categories_records:
+        categories.append(Category(row))
+
+    cursor.execute("SELECT * FROM actor")
+    actors_records = cursor.fetchall()
+    actors = []
+    for row in actors_records:
+        actors.append(Actor(row))
+
+    cursor.close()
+    connection.close()
     if request.method == "POST":
         if not request.form.get("title"):
             return redirect(url_for("add_film", checker="False", message="Nazwa filmu jest wymagana!"))
@@ -303,13 +359,26 @@ def add_film():
             print(title,director,year,country)
             return redirect("/add_film")
     else:
-        return render_template("add_film.html", checker=checker, message=message)
+        return render_template("add_film.html", checker=checker, message=message,categories=categories, actors=actors)
 
 
 @app.route("/add_actor", methods=["GET", "POST"])
 @login_required
 def add_actor():
-    return redirect("/add_actor")
+    name = request.form.get("name")
+    connection = psycopg2.connect(url)
+    cursor = connection.cursor()
+    cursor.execute("INSERT INTO actor (name) VALUES (%s);", [name])
+    connection.commit()
+    cursor.close()
+    connection.close()
+    print (name)
+    return redirect("/add_film")
+
+@app.route("/add_film_form", methods=["GET", "POST"])
+@login_required
+def add_film_form():
+    return redirect("/add_film_form")
 
 if __name__ == "__main__":
     app.run()
