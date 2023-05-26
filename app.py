@@ -107,9 +107,7 @@ def home():
     cursor.execute('SELECT c.ID_CATALOG, c.title FROM catalog c WHERE c.User_ID_USER=%s;', [session['user_id']])
     catalogs_records = cursor.fetchall()
     catalogs = []
-    if len(catalogs_records) < 1:
-        catalogs = [catalog('1', 'Wszystkie')]
-    else:
+    if len(catalogs_records) >= 1:
         for row in catalogs_records:
             catalogs.append(catalog(row[0], row[1])) 
     cursor.close()
