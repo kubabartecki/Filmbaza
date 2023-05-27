@@ -45,7 +45,7 @@
                 <h5>Aktorzy</h5>
                 <select name="actors" id="actors" style="width: 21vw; height: 5vh;" multiple multiselect-search="true">
                     {% for actor in actors %}
-                        <option value="{{actor.name}}">{{actor.name}}</option>
+                        <option value="{{actor.id}}">{{actor.name}}</option>
                     {% endfor %}
                 </select>
                 <button type="button" class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#actorModal">Dodaj aktora spoza listy</button>
@@ -55,7 +55,7 @@
                 <h5>Kategorie</h5>
                 <select name="categories" id="categories" style="width: 21vw; height: 5vh;" multiple multiselect-search="true">
                     {% for category in categories %}
-                        <option value={{category.name}}>{{category.name}}</option>
+                        <option value={{category.id}}>{{category.name}}</option>
                     {% endfor %}
                 </select>
             </div>

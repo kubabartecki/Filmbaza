@@ -358,6 +358,10 @@ def add_actor():
     name = request.form.get("name")
     connection = psycopg2.connect(url)
     cursor = connection.cursor()
+    cursor.execute("SELECT name FROM actor WHERE name = %s;", [name])
+    existing_actor = cursor.fetchone()
+    if existing_actor:
+        return redirect(url_for("add_film", checker="False", message="Podany aktor jest już wprowadzony!"))
     cursor.execute("INSERT INTO actor (name) VALUES (%s);", [name])
     connection.commit()
     cursor.close()
@@ -398,6 +402,23 @@ def add_film_form():
             album_link = request.form.get("album_link")
             if not is_valid_link(album_link):
                 return redirect(url_for("add_film", checker="False", message="Podany link jest niepoprawny!"))
+            
+            connection = psycopg2.connect(url)
+            cursor = connection.cursor()
+            cursor.execute("INSERT INTO film (title,poster,director,year,description) VALUES (%s,%s,%s,%s,%s);", [title,album_link,director,year,description])
+            connection.commit()
+            cursor.execute("SELECT id_film FROM film WHERE title=(%s)",[title])
+            film_id_tab = cursor.fetchall()
+            film_id = film_id_tab[0]
+            for actor_id in selected_actors:
+                cursor.execute("INSERT INTO film_actor (film_id_film, actor_id_actor) VALUES (%s, %s);", (film_id, actor_id))
+            for category_id in selected_categories:
+                cursor.execute("INSERT INTO film_category (film_id_film, category_id_category) VALUES (%s, %s);", (film_id, category_id))
+            connection.commit()
+            cursor.close()
+            connection.close()
+
+        
             print(selected_categories, selected_actors,description)
             print(title,director,year,country)
             print(album_link)
@@ -405,3 +426,5 @@ def add_film_form():
 
 if __name__ == "__main__":
     app.run()
+
+
