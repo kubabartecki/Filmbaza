@@ -3,7 +3,7 @@ from config import DATABASE_URL
 from flask import Flask, session, render_template, redirect, request, url_for
 from flask_session import Session
 from werkzeug.security import check_password_hash, generate_password_hash
-from helpers import correct_year, login_required, login_not_required, logged_user, Film, Review, Category, Actor, catalog, is_valid_name_surname, is_valid_mail, correct_password, update_rank, is_valid_link
+from helpers import correct_year, login_required, login_not_required, logged_user, Film, Review, Category, Actor,Country ,catalog, is_valid_name_surname, is_valid_mail, correct_password, update_rank, is_valid_link
 
 
 app = Flask(__name__)
@@ -339,6 +339,13 @@ def add_film():
     connection = psycopg2.connect(url)
     cursor = connection.cursor()
 
+    cursor.execute("SELECT * FROM country")
+    country_records = cursor.fetchall()
+    country = []
+    for row in country_records:
+        country.append(Country(row))
+    
+
     cursor.execute("SELECT * FROM category")
     categories_records = cursor.fetchall()
     categories = []
@@ -346,15 +353,16 @@ def add_film():
         categories.append(Category(row))
 
     cursor.execute("SELECT * FROM actor")
-    actors_records = cursor.fetchall()
+    actors_records = cursor.fetchall()  
     actors = []
     for row in actors_records:
         actors.append(Actor(row))
 
+    
     cursor.close()
     connection.close()
     
-    return render_template("add_film.html", checker=checker, message=message,categories=categories, actors=actors)
+    return render_template("add_film.html", checker=checker, message=message,country=country,categories=categories, actors=actors )
 
 
 @app.route("/add_actor", methods=["GET", "POST"])
@@ -379,10 +387,17 @@ def add_actor():
 @login_required
 def add_film_form():
     """Route used to handle the form for adding a new film."""
+    connection = psycopg2.connect(url)
+    cursor = connection.cursor()
     if request.method == "POST":
         if not request.form.get("title"):
             return redirect(url_for("add_film", checker="False", message="Nazwa filmu jest wymagana!"))
         title = request.form.get("title")
+        cursor.execute("SELECT title FROM film WHERE title= %s;", [title])
+    existing_title = cursor.fetchone()
+    if existing_title:
+        return redirect(url_for("add_film", checker="False", message="Podany film jest już wprowadzony!"))
+    else:
         if not request.form.get("director"):
             return redirect(url_for("add_film", checker="False", message="Podanie reżysera jest wymagane!"))
         director = request.form.get("director")
@@ -392,9 +407,9 @@ def add_film_form():
         if not correct_year(year):
             return redirect(url_for("add_film", checker="False", message="Podany rok jest niepoprawny!"))
         else:
-            if not request.form.get("country"):
-                return redirect(url_for("add_film", checker="False", message="Podanie kraju jest wymagane!"))
-            country = request.form.get("country")
+            if not request.form.getlist("country"):
+                return redirect(url_for("add_film", checker="False" ,message="Nie wybrano żadnego kraju!"))
+            selected_country = request.form.getlist('country')
             if not request.form.getlist("actors"):
                 return redirect(url_for("add_film", checker="False" ,message="Nie wybrano żadnego aktora!"))
             selected_actors = request.form.getlist('actors')
@@ -410,8 +425,7 @@ def add_film_form():
             if not is_valid_link(album_link):
                 return redirect(url_for("add_film", checker="False", message="Podany link jest niepoprawny!"))
             
-            connection = psycopg2.connect(url)
-            cursor = connection.cursor()
+            
             cursor.execute("INSERT INTO film (title,poster,director,year,description) VALUES (%s,%s,%s,%s,%s);", [title,album_link,director,year,description])
             connection.commit()
             cursor.execute("SELECT id_film FROM film WHERE title=(%s)",[title])
@@ -421,13 +435,15 @@ def add_film_form():
                 cursor.execute("INSERT INTO film_actor (film_id_film, actor_id_actor) VALUES (%s, %s);", (film_id, actor_id))
             for category_id in selected_categories:
                 cursor.execute("INSERT INTO film_category (film_id_film, category_id_category) VALUES (%s, %s);", (film_id, category_id))
+            for country_id in selected_country:
+                cursor.execute("INSERT INTO film_country (film_id_film, country_id_country) VALUES (%s, %s);", (film_id, country_id))
             connection.commit()
             cursor.close()
             connection.close()
 
         
-            print(selected_categories, selected_actors,description)
-            print(title,director,year,country)
+            print(selected_categories, selected_actors,description, selected_actors)
+            print(title,director,year)
             print(album_link)
             return redirect("/add_film")
 
