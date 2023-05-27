@@ -216,6 +216,7 @@ def add_review():
 @app.route("/add_catalog", methods=["GET", "POST"])
 @login_required
 def add_catalog():
+    """Route used to display the form for adding a new catalog."""
     checker = request.args.get("checker", default="True", type=str) == "True"
     message = request.args.get("message", default="", type=str)
     connection = psycopg2.connect(url)
@@ -232,6 +233,7 @@ def add_catalog():
 @app.route("/add_catalog_form", methods=['GET', 'POST'])
 @login_required
 def add_catalog_form():
+    """Route used to handle the form for adding a new catalog."""
     if not request.form.get("name"):
         message = "Nie podano nazwy katalogu!"
         return redirect(url_for("add_catalog", message=message, checker=False))
@@ -262,6 +264,7 @@ def add_catalog_form():
 @app.route("/select_catalog", methods=["GET", "POST"])
 @login_required
 def select_catalog():
+    """Route used display films within specific catalog."""
     if not request.form.get("catalog_id"):
         return redirect('/home')
     catalog_id = request.form.get("catalog_id")
@@ -270,6 +273,7 @@ def select_catalog():
 @app.route("/login", methods=["GET", "POST"])
 @login_not_required
 def login():
+    """Route used to handle login form."""
     checker = request.args.get("checker", default="True", type=str) == "True"
     message = request.args.get("message", default="", type=str)
     return render_template("login.html", checker=checker, message=message)
@@ -329,6 +333,7 @@ def register():
 @app.route("/add_film", methods=["GET", "POST"])
 @login_required
 def add_film():
+    """Route used to display the form for adding a new film to database."""
     checker = request.args.get("checker", default="True", type=str) == "True"
     message = request.args.get("message", default="", type=str)
     connection = psycopg2.connect(url)
@@ -355,6 +360,7 @@ def add_film():
 @app.route("/add_actor", methods=["GET", "POST"])
 @login_required
 def add_actor():
+    """Route used to handle the form for adding a new actor."""
     name = request.form.get("name")
     connection = psycopg2.connect(url)
     cursor = connection.cursor()
@@ -372,6 +378,7 @@ def add_actor():
 @app.route("/add_film_form", methods=["GET", "POST"])
 @login_required
 def add_film_form():
+    """Route used to handle the form for adding a new film."""
     if request.method == "POST":
         if not request.form.get("title"):
             return redirect(url_for("add_film", checker="False", message="Nazwa filmu jest wymagana!"))
