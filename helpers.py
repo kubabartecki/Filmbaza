@@ -82,6 +82,12 @@ def update_rank(url, user_id):
     connection.commit()
     cursor.close()
     connection.close()
+
+def is_valid_link(link):
+    pattern = re.compile(r'^(http|https|ftp)://[^\s/$.?#].[^\s]*$')
+    return pattern.match(link) is not None
+
+
     
 class logged_user():
     """Class used to improve code readability and to make it easier to pass values about logged user to the frontend."""
@@ -135,6 +141,11 @@ class Review():
         self.description = records[1]
         self.grade = records[2]
 
+class Country:
+    def __init__(self, records):
+        self.id = records[0]
+        self.name = records[1]
+        
 class Category:
     def __init__(self, records):
         self.id = records[0]
@@ -144,4 +155,6 @@ class Actor:
     def __init__(self, records):
         self.id = records[0]
         self.name = records[1]
+
+
 

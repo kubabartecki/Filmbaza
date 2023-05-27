@@ -3,13 +3,14 @@ from config import DATABASE_URL
 from flask import Flask, session, render_template, redirect, request, url_for
 from flask_session import Session
 from werkzeug.security import check_password_hash, generate_password_hash
-from helpers import correct_year, login_required, login_not_required, logged_user, Film, Review, Category, Actor, catalog, is_valid_name_surname, is_valid_mail, correct_password, update_rank
+from helpers import correct_year, login_required, login_not_required, logged_user, Film, Review, Category, Actor, Country, catalog, is_valid_name_surname, is_valid_mail, correct_password, update_rank, is_valid_link
 
 
 app = Flask(__name__)
 
 # Ensure templates are auto-reloaded
 app.config["TEMPLATES_AUTO_RELOAD"] = True
+
 # Configure session to use filesystem
 app.config["SESSION_PERMANENT"] = False
 app.config['SESSION_TYPE'] = 'filesystem'
@@ -216,6 +217,7 @@ def add_review():
 @app.route("/add_catalog", methods=["GET", "POST"])
 @login_required
 def add_catalog():
+    """Route used to display the form for adding a new catalog."""
     checker = request.args.get("checker", default="True", type=str) == "True"
     message = request.args.get("message", default="", type=str)
     connection = psycopg2.connect(url)
@@ -229,9 +231,11 @@ def add_catalog():
     connection.close()
     return render_template("add_catalog.html", films=films, checker=checker, message=message)
 
+
 @app.route("/add_catalog_form", methods=['GET', 'POST'])
 @login_required
 def add_catalog_form():
+    """Route used to handle the form for adding a new catalog."""
     if not request.form.get("name"):
         message = "Nie podano nazwy katalogu!"
         return redirect(url_for("add_catalog", message=message, checker=False))
@@ -262,14 +266,17 @@ def add_catalog_form():
 @app.route("/select_catalog", methods=["GET", "POST"])
 @login_required
 def select_catalog():
+    """Route used display films within specific catalog."""
     if not request.form.get("catalog_id"):
         return redirect('/home')
     catalog_id = request.form.get("catalog_id")
     return redirect(f"/home?catalog_id={catalog_id}")
 
+
 @app.route("/login", methods=["GET", "POST"])
 @login_not_required
 def login():
+    """Route used to handle login form."""
     checker = request.args.get("checker", default="True", type=str) == "True"
     message = request.args.get("message", default="", type=str)
     return render_template("login.html", checker=checker, message=message)
@@ -329,29 +336,63 @@ def register():
 @app.route("/add_film", methods=["GET", "POST"])
 @login_required
 def add_film():
+    """Route used to display the form for adding a new film to database."""
     checker = request.args.get("checker", default="True", type=str) == "True"
     message = request.args.get("message", default="", type=str)
     connection = psycopg2.connect(url)
     cursor = connection.cursor()
-
+    cursor.execute("SELECT * FROM country")
+    country_records = cursor.fetchall()
+    country = []
+    for row in country_records:
+        country.append(Country(row))
     cursor.execute("SELECT * FROM category")
     categories_records = cursor.fetchall()
     categories = []
     for row in categories_records:
         categories.append(Category(row))
-
     cursor.execute("SELECT * FROM actor")
-    actors_records = cursor.fetchall()
+    actors_records = cursor.fetchall()  
     actors = []
     for row in actors_records:
         actors.append(Actor(row))
-
     cursor.close()
     connection.close()
+    return render_template("add_film.html", checker=checker, message=message,country=country, categories=categories, actors=actors )
+
+
+@app.route("/add_actor", methods=["GET", "POST"])
+@login_required
+def add_actor():
+    """Route used to handle the form for adding a new actor."""
+    name = request.form.get("name")
+    connection = psycopg2.connect(url)
+    cursor = connection.cursor()
+    cursor.execute("SELECT name FROM actor WHERE name = %s;", [name])
+    existing_actor = cursor.fetchone()
+    if existing_actor:
+        return redirect(url_for("add_film", checker="False", message="Podany aktor jest już wprowadzony!"))
+    cursor.execute("INSERT INTO actor (name) VALUES (%s);", [name])
+    connection.commit()
+    cursor.close()
+    connection.close()
+    return redirect("/add_film")
+
+@app.route("/add_film_form", methods=["GET", "POST"])
+@login_required
+def add_film_form():
+    """Route used to handle the form for adding a new film."""
+    connection = psycopg2.connect(url)
+    cursor = connection.cursor()
     if request.method == "POST":
         if not request.form.get("title"):
             return redirect(url_for("add_film", checker="False", message="Nazwa filmu jest wymagana!"))
         title = request.form.get("title")
+        cursor.execute("SELECT title FROM film WHERE title= %s;", [title])
+    existing_title = cursor.fetchone()
+    if existing_title:
+        return redirect(url_for("add_film", checker="False", message="Podany film jest już wprowadzony!"))
+    else:
         if not request.form.get("director"):
             return redirect(url_for("add_film", checker="False", message="Podanie reżysera jest wymagane!"))
         director = request.form.get("director")
@@ -361,32 +402,40 @@ def add_film():
         if not correct_year(year):
             return redirect(url_for("add_film", checker="False", message="Podany rok jest niepoprawny!"))
         else:
-            if not request.form.get("country"):
-                return redirect(url_for("add_film", checker="False", message="Podanie kraju jest wymagane!"))
-            country = request.form.get("country")
-            print(title,director,year,country)
+            if not request.form.getlist("country"):
+                return redirect(url_for("add_film", checker="False" ,message="Nie wybrano żadnego kraju!"))
+            selected_country = request.form.getlist('country')
+            if not request.form.getlist("actors"):
+                return redirect(url_for("add_film", checker="False" ,message="Nie wybrano żadnego aktora!"))
+            selected_actors = request.form.getlist('actors')
+            if not request.form.getlist("categories"):
+                return redirect(url_for("add_film", checker="False" ,message="Nie wybrano żadnej kategorii!"))
+            selected_categories = request.form.getlist('categories')
+            if not request.form.get("description"):
+                return redirect(url_for("add_film",checker="False", message="Nie wprowadzono opisu filmu!"))
+            description = request.form.get("description").strip()
+            if not request.form.get("album_link"):
+                return redirect(url_for("add_film", checker="False", message="Podanie linku do okładki filmu jest wymagane!"))
+            album_link = request.form.get("album_link")
+            if not is_valid_link(album_link):
+                return redirect(url_for("add_film", checker="False", message="Podany link jest niepoprawny!"))
+            cursor.execute("INSERT INTO film (title,poster,director,year,description) VALUES (%s,%s,%s,%s,%s);", [title,album_link,director,year,description])
+            connection.commit()
+            cursor.execute("SELECT id_film FROM film WHERE title=(%s)",[title])
+            film_id_tab = cursor.fetchall()
+            film_id = film_id_tab[0]
+            for actor_id in selected_actors:
+                cursor.execute("INSERT INTO film_actor (film_id_film, actor_id_actor) VALUES (%s, %s);", (film_id, actor_id))
+            for category_id in selected_categories:
+                cursor.execute("INSERT INTO film_category (film_id_film, category_id_category) VALUES (%s, %s);", (film_id, category_id))
+            for country_id in selected_country:
+                cursor.execute("INSERT INTO film_country (film_id_film, country_id_country) VALUES (%s, %s);", (film_id, country_id))
+            connection.commit()
+            cursor.close()
+            connection.close()
             return redirect("/add_film")
-    else:
-        return render_template("add_film.html", checker=checker, message=message,categories=categories, actors=actors)
-
-
-@app.route("/add_actor", methods=["GET", "POST"])
-@login_required
-def add_actor():
-    name = request.form.get("name")
-    connection = psycopg2.connect(url)
-    cursor = connection.cursor()
-    cursor.execute("INSERT INTO actor (name) VALUES (%s);", [name])
-    connection.commit()
-    cursor.close()
-    connection.close()
-    print (name)
-    return redirect("/add_film")
-
-@app.route("/add_film_form", methods=["GET", "POST"])
-@login_required
-def add_film_form():
-    return redirect("/add_film_form")
 
 if __name__ == "__main__":
     app.run()
+
+

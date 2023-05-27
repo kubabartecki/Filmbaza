@@ -36,11 +36,11 @@
                 <input type="text" class="form-control" name="year">
             </div>
 
-            <div class="mb-3 mt-3" style="width: 20vw;">
+            <div class="mb-3 mt-3" style="width: 60vw;">
                 <h5>Kraj</h5>
                 <select name="country" id="country" style="width: 21vw; height: 5vh;" multiple multiselect-search="true">
-                    {% for country in countries %}
-                        <option value={{country.id}}>{{country.name}}</option>
+                    {% for country in country %}
+                        <option value="{{ country.id }}">{{ country.name }}</option>
                     {% endfor %}
                 </select>
             </div>
@@ -49,7 +49,7 @@
                 <h5>Aktorzy</h5>
                 <select name="actors" id="actors" style="width: 21vw; height: 5vh;" multiple multiselect-search="true">
                     {% for actor in actors %}
-                        <option value={{actor.id}}>{{actor.name}}</option>
+                        <option value="{{actor.id}}">{{actor.name}}</option>
                     {% endfor %}
                 </select>
                 <button type="button" class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#actorModal">Dodaj aktora spoza listy</button>
