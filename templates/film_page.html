@@ -35,7 +35,7 @@
           <form method="POST" action="/add_review_form">
             <div class="row" style="padding-top: 2vh;">
 
-              <p style="float: left; padding-right: 1vw;">Recenzja:
+              <p style="float: left; padding-right: 1vw;"><b>Recenzja:</b>
                 <button type="submit" class="btn btn-secondary" style="width: 9vw;" name="movie_id"
                   value="{{movie_id}}">Dodaj
                   recenzję</button>
@@ -49,25 +49,25 @@
         <div class="container; text-center" style="background-color: rgb(200, 200, 200); margin-left: 1vw;">
 
           <div class="row text-center">
-            <h4>Informacje:</h4>
+            <h4><b>Informacje:</b></h4>
           </div>
 
           <div class="row text-center">
-            <p>Reżyser: {{director}}</p>
+            <p><b>Reżyser: </b>{{director}}</p>
           </div>
 
           <div class="row text-center">
-            <p>Rok: {{year}}</p>
+            <p><b>Rok: </b>{{year}}</p>
           </div>
 
           <div class="row text-center">
-            <p>Kraj: {{country}}</p>
+            <p><b>Kraj: </b>{{country}}</p>
           </div>
 
           <div class="row text-center">
-            <p>Aktorzy: </p>
+            <p><b>Aktorzy: </b></p>
             {% for actor in actors %} <!--idk-->
-            <p>{{actor}}</p>
+            {{actor}}, 
             {% endfor %}
           </div>
         </div>

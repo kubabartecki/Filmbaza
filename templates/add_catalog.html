@@ -16,16 +16,16 @@
 
 <body style="background-color: lightgrey;">
   <form action="/add_catalog_form" method="post">
-    <div class="overflow-auto my-4" style="background-color: rgb(216, 216, 216); height: 50vh; max-width: 80vw; max-height: 80vh; margin-left: 10vw;">
+    <div class="overflow-auto my-4" style="background-color: rgb(216, 216, 216); height: 95vh; max-width: 80vw; margin-left: 10vw; margin-top: 20vh;">
 
-      <div class="mb-3 mt-3 text-center" style="width: 20vw; margin-left: 30vw; padding-top: 20vh;">
+      <div class="mb-3 mt-3 text-center" style="width: 21vw; margin-left: 30vw; padding-top: 20vh;">
 
         <h5>Nazwa</h5>
         <input type="text" class="form-control" name="name">
 
       </div>
 
-      <div class="mb-3 mt-3 text-center" style="width: 20vw; margin-left: 30vw;">
+      <div class="mb-3 mt-3 text-center" style="width: 21vw; margin-left: 30vw;">
           <select name="films" id="films" style="width: 21vw; height: 10vh;" multiple multiselect-search="true">
             {% for film in films %}
                 <option value={{film.id}}>{{film.title}}</option>
