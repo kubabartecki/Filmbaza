@@ -1,4 +1,4 @@
-import re
+import re, psycopg2
 from flask import redirect, session
 from functools import wraps
 
@@ -13,6 +13,11 @@ def is_valid_mail(mail):
 def is_valid_name_surname(name):
     pattern = r'^([A-ZĄĆĘŁŃÓŚŹŻ][a-ząćęłńóśźż]{1,20}([ -][A-ZĄĆĘŁŃÓŚŹŻ][a-ząćęłńóśźż]{1,20})?)$'
     match = re.match(pattern, name)
+    return match is not None
+
+def correct_year(year):
+    pattern = r"^\d{4}$"
+    match = re.match(pattern, year)
     return match is not None
 
 
@@ -42,7 +47,6 @@ def login_not_required(f):
             return redirect("/home")
     return decorated_function
 
-
 def get_rank_name(rank):
     """The function returns the string equivalent of rank."""
     if rank == 1:
@@ -54,17 +58,47 @@ def get_rank_name(rank):
     elif rank == 4:
         return "Filmomaniak"
 
+def get_rank_id(reviews):
+    """The function returns the id of rank based on the number of reviews."""
+    if reviews >= 0 and reviews <= 10:
+        return 1
+    elif reviews >= 11 and reviews <= 50:
+        return 2
+    elif reviews >= 51 and reviews <= 100:
+        return 3
+    elif reviews > 100:
+        return 4
 
+def update_rank(url, user_id):
+    """The function updates user rank in database."""
+    connection = psycopg2.connect(url)
+    cursor = connection.cursor()
+    cursor.execute("SELECT COUNT(ID_REVIEW) FROM \"review\" INNER JOIN  \"User\" as u ON \"review\".User_ID_USER = u.ID_USER WHERE u.ID_USER = %s", [
+                   session["user_id"]])
+    reviews = cursor.fetchone()[0]
+    rank_id = get_rank_id(reviews)
+    cursor.execute(
+        "UPDATE \"User\" SET rank_id_rank = %s WHERE id_user = %s;", [rank_id, user_id])
+    connection.commit()
+    cursor.close()
+    connection.close()
+    
 class logged_user():
     """Class used to improve code readability and to make it easier to pass values about logged user to the frontend."""
 
-    def __init__(self, records, user_reviews_count):
+    def __init__(self, records, user_reviews_count, catalogs):
         self.username = records[0][3]
         self.name = records[0][4]
         self.surname = records[0][5]
         self.rank = get_rank_name(records[0][6])
         self.no_review = user_reviews_count[0][0]
+        self.catalogs = catalogs
 
+class catalog():
+    def __init__(self, catalog_id, name):
+        self.id = catalog_id
+        self.name = name
+    
 
 class Film():
     """Class used to improve code readability and to make it easier to pass values about specific film to the frontend."""
@@ -94,3 +128,20 @@ class Film():
         print(f"description: {self.description}")
         print(f"avg_grade: {self.avg_grade}")
         print(f"tags: {self.tags}")
+
+class Review():
+    def __init__(self, records):
+        self.autor = records[0]
+        self.description = records[1]
+        self.grade = records[2]
+
+class Category:
+    def __init__(self, records):
+        self.id = records[0]
+        self.name = records[1]
+    
+class Actor:
+    def __init__(self, records):
+        self.id = records[0]
+        self.name = records[1]
+
