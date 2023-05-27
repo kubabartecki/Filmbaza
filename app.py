@@ -38,7 +38,7 @@ def default():
     """Main page of the website."""
     connection = psycopg2.connect(url)
     cursor = connection.cursor()
-    cursor.execute("SELECT film.ID_FILM, film.poster, film.title, film.director, film.year, film.description, STRING_AGG(country.name, ', ') countries, (SELECT AVG(review.stars) avg_grade FROM review WHERE review.film_id_film = film.id_film) FROM film_country JOIN film ON film.id_film = film_country.film_id_film JOIN country ON film_country.country_id_country = country.id_country GROUP BY film.id_film;")
+    cursor.execute("SELECT film.ID_FILM, film.poster, film.title, film.director, film.year, film.description, STRING_AGG(country.name, ', ') countries, (SELECT ROUND(AVG(review.stars), 1) avg_grade FROM review WHERE review.film_id_film = film.id_film) FROM film_country JOIN film ON film.id_film = film_country.film_id_film JOIN country ON film_country.country_id_country = country.id_country GROUP BY film.id_film;")
     films_records = cursor.fetchall()
     search_string = request.args.get("search_string")
     films = []
@@ -97,9 +97,9 @@ def home():
     search_string = request.args.get("search_string")
     catalog_id = request.args.get("catalog_id")
     if catalog_id == None or catalog_id == 'Wszystkie':
-        cursor.execute("SELECT film.ID_FILM, film.poster, film.title, film.director, film.year, film.description, STRING_AGG(country.name, ', ') countries, (SELECT AVG(review.stars) avg_grade FROM review WHERE review.film_id_film = film.id_film) FROM film_country JOIN film ON film.id_film = film_country.film_id_film JOIN country ON film_country.country_id_country = country.id_country GROUP BY film.id_film;")
+        cursor.execute("SELECT film.ID_FILM, film.poster, film.title, film.director, film.year, film.description, STRING_AGG(country.name, ', ') countries, (SELECT ROUND(AVG(review.stars), 1) avg_grade FROM review WHERE review.film_id_film = film.id_film) FROM film_country JOIN film ON film.id_film = film_country.film_id_film JOIN country ON film_country.country_id_country = country.id_country GROUP BY film.id_film;")
     else:
-        cursor.execute('SELECT film.ID_FILM, film.poster, film.title, film.director, film.year, film.description, STRING_AGG(country.name, %s) countries, (SELECT AVG(review.stars) avg_grade FROM review WHERE review.film_id_film = film.id_film) FROM film_country JOIN film ON film.id_film = film_country.film_id_film JOIN country ON film_country.country_id_country = country.id_country JOIN film_catalog ON film.ID_FILM=film_catalog.Film_ID_FILM WHERE film_catalog.Catalog_ID_CATALOG=%s GROUP BY film.id_film;', [', ', catalog_id])
+        cursor.execute('SELECT film.ID_FILM, film.poster, film.title, film.director, film.year, film.description, STRING_AGG(country.name, %s) countries, (SELECT ROUND(AVG(review.stars), 1) avg_grade FROM review WHERE review.film_id_film = film.id_film) FROM film_country JOIN film ON film.id_film = film_country.film_id_film JOIN country ON film_country.country_id_country = country.id_country JOIN film_catalog ON film.ID_FILM=film_catalog.Film_ID_FILM WHERE film_catalog.Catalog_ID_CATALOG=%s GROUP BY film.id_film;', [', ', catalog_id])
     films_records = cursor.fetchall()
     films = []
     for row in films_records:
@@ -139,7 +139,7 @@ def film_page():
     cursor.execute("SELECT * FROM film WHERE id_film = %s", [movie_id])
     film_id = cursor.fetchone()[0]
     cursor.execute(
-        "SELECT film.poster, film.title, film.director, film.year, film.description, STRING_AGG(country.name, ', ') countries, (SELECT AVG(review.stars) avg_grade FROM review WHERE review.film_id_film = film.id_film) FROM film_country JOIN film ON film.id_film = film_country.film_id_film JOIN country ON film_country.country_id_country = country.id_country WHERE film.id_film = %s GROUP BY film.id_film", [film_id])
+        "SELECT film.poster, film.title, film.director, film.year, film.description, STRING_AGG(country.name, ', ') countries, (SELECT ROUND(AVG(review.stars), 1) avg_grade FROM review WHERE review.film_id_film = film.id_film) FROM film_country JOIN film ON film.id_film = film_country.film_id_film JOIN country ON film_country.country_id_country = country.id_country WHERE film.id_film = %s GROUP BY film.id_film", [film_id])
     film_data = cursor.fetchone()
     cursor.execute(
         "SELECT u.username, r.description, r.stars FROM review r JOIN \"User\" u ON u.id_user = r.user_id_user WHERE r.film_id_film = %s;", [movie_id])
@@ -220,7 +220,7 @@ def add_catalog():
     message = request.args.get("message", default="", type=str)
     connection = psycopg2.connect(url)
     cursor = connection.cursor()
-    cursor.execute("SELECT film.ID_FILM, film.poster, film.title, film.director, film.year, film.description, STRING_AGG(country.name, ', ') countries, (SELECT AVG(review.stars) avg_grade FROM review WHERE review.film_id_film = film.id_film) FROM film_country JOIN film ON film.id_film = film_country.film_id_film JOIN country ON film_country.country_id_country = country.id_country GROUP BY film.id_film;")
+    cursor.execute("SELECT film.ID_FILM, film.poster, film.title, film.director, film.year, film.description, STRING_AGG(country.name, ', ') countries, (SELECT ROUND(AVG(review.stars), 1) avg_grade FROM review WHERE review.film_id_film = film.id_film) FROM film_country JOIN film ON film.id_film = film_country.film_id_film JOIN country ON film_country.country_id_country = country.id_country GROUP BY film.id_film;")
     films_records = cursor.fetchall()
     films = []
     for row in films_records:
