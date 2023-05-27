@@ -3,13 +3,14 @@ from config import DATABASE_URL
 from flask import Flask, session, render_template, redirect, request, url_for
 from flask_session import Session
 from werkzeug.security import check_password_hash, generate_password_hash
-from helpers import correct_year, login_required, login_not_required, logged_user, Film, Review, Category, Actor,Country ,catalog, is_valid_name_surname, is_valid_mail, correct_password, update_rank, is_valid_link
+from helpers import correct_year, login_required, login_not_required, logged_user, Film, Review, Category, Actor, Country, catalog, is_valid_name_surname, is_valid_mail, correct_password, update_rank, is_valid_link
 
 
 app = Flask(__name__)
 
 # Ensure templates are auto-reloaded
 app.config["TEMPLATES_AUTO_RELOAD"] = True
+
 # Configure session to use filesystem
 app.config["SESSION_PERMANENT"] = False
 app.config['SESSION_TYPE'] = 'filesystem'
@@ -230,6 +231,7 @@ def add_catalog():
     connection.close()
     return render_template("add_catalog.html", films=films, checker=checker, message=message)
 
+
 @app.route("/add_catalog_form", methods=['GET', 'POST'])
 @login_required
 def add_catalog_form():
@@ -269,6 +271,7 @@ def select_catalog():
         return redirect('/home')
     catalog_id = request.form.get("catalog_id")
     return redirect(f"/home?catalog_id={catalog_id}")
+
 
 @app.route("/login", methods=["GET", "POST"])
 @login_not_required
@@ -338,31 +341,24 @@ def add_film():
     message = request.args.get("message", default="", type=str)
     connection = psycopg2.connect(url)
     cursor = connection.cursor()
-
     cursor.execute("SELECT * FROM country")
     country_records = cursor.fetchall()
     country = []
     for row in country_records:
         country.append(Country(row))
-    
-
     cursor.execute("SELECT * FROM category")
     categories_records = cursor.fetchall()
     categories = []
     for row in categories_records:
         categories.append(Category(row))
-
     cursor.execute("SELECT * FROM actor")
     actors_records = cursor.fetchall()  
     actors = []
     for row in actors_records:
         actors.append(Actor(row))
-
-    
     cursor.close()
     connection.close()
-    
-    return render_template("add_film.html", checker=checker, message=message,country=country,categories=categories, actors=actors )
+    return render_template("add_film.html", checker=checker, message=message,country=country, categories=categories, actors=actors )
 
 
 @app.route("/add_actor", methods=["GET", "POST"])
@@ -380,7 +376,6 @@ def add_actor():
     connection.commit()
     cursor.close()
     connection.close()
-    print (name)
     return redirect("/add_film")
 
 @app.route("/add_film_form", methods=["GET", "POST"])
@@ -424,8 +419,6 @@ def add_film_form():
             album_link = request.form.get("album_link")
             if not is_valid_link(album_link):
                 return redirect(url_for("add_film", checker="False", message="Podany link jest niepoprawny!"))
-            
-            
             cursor.execute("INSERT INTO film (title,poster,director,year,description) VALUES (%s,%s,%s,%s,%s);", [title,album_link,director,year,description])
             connection.commit()
             cursor.execute("SELECT id_film FROM film WHERE title=(%s)",[title])
@@ -440,11 +433,6 @@ def add_film_form():
             connection.commit()
             cursor.close()
             connection.close()
-
-        
-            print(selected_categories, selected_actors,description, selected_actors)
-            print(title,director,year)
-            print(album_link)
             return redirect("/add_film")
 
 if __name__ == "__main__":
