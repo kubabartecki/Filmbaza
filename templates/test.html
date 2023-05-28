@@ -1,0 +1,229 @@
+<!DOCTYPE html>
+<html lang="pl">
+
+<head>
+    <title>Baza Filmów</title>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.2.3/dist/css/bootstrap.min.css">
+    <style>
+        body {
+            background-color: #f2f2f2;
+            overflow-x: hidden;
+        }
+
+        .header {
+            background-color: #333333;
+            height: 15vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .header h1 {
+            color: #ffffff;
+            font-size: 2.5rem;
+        }
+
+        .sidebar {
+            background-color: #555555;
+            text-align: center;
+            height: 82vh;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: flex-start;
+            padding-top: 10vh;
+        }
+
+        .sidebar h4,
+        .sidebar h5 {
+            color: #ffffff;
+            margin: 0;
+        }
+
+        .main-content {
+            padding-left: 3vw;
+        }
+
+        .search-form {
+            margin-top: 1vh;
+            display: flex;
+            align-items: center;
+        }
+
+        .search-form select,
+        .search-form input[type="text"] {
+            width: 100%;
+            max-width: 250px;
+            padding: 6px;
+            border-radius: 4px;
+            border: 1px solid #dddddd;
+        }
+
+        .search-form button {
+            margin-left: 10px;
+        }
+
+        .action-buttons {
+            width: 100%;
+            max-width: 150px;
+            margin-top: 1vh;
+            margin-left: 10px;
+        }
+
+        .film-container {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            background-color: #ffffff;
+            border-radius: 6px;
+            margin: 10px 0;
+            padding: 10px;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+            overflow: hidden;
+        }
+
+        .film-container img {
+            width: 150px;
+            height: 185px;
+            object-fit: cover;
+        }
+
+        .film-details {
+            flex-grow: 1;
+            margin-left: 10px;
+        }
+
+        .film-details h3,
+        .film-details h5 {
+            margin: 0;
+        }
+
+        .film-rating {
+            text-align: center;
+            width: 100px;
+        }
+
+        .film-rating h3,
+        .film-rating h4 {
+            margin: 0;
+            padding-top: 4vh;
+        }
+
+        .film-button {
+            width: 100%;
+            margin-top: 10px;
+        }
+
+        @keyframes fadeIn {
+            0% {
+                opacity: 0;
+            }
+            100% {
+                opacity: 1;
+            }
+        }
+
+        .film-container {
+            animation: fadeIn 0.5s ease-in-out;
+        }
+    </style>
+</head>
+
+<body>
+    <div class="header">
+        <h1>BAZA FILMÓW</h1>
+    </div>
+
+    <div class="row" style="height: 82vh;">
+        <div class="col-2 sidebar">
+            <h4>{{logged_user.username}}</h4>
+            <h5>{{logged_user.name}}</h5>
+            <h5>{{logged_user.surname}}</h5>
+            <h5>{{logged_user.rank}}</h5>
+            <h5>Recenzje: {{logged_user.no_review}}</h5>
+        </div>
+
+        <div class="col-10 main-content">
+            <div class="row">
+                <div class="col-4">
+                    <form method="POST" action="/select_catalog" class="search-form">
+                        <select name="catalog_id">
+                            <option value="Wszystkie" selected>Wszystkie</option>
+                            {% for catalog in logged_user.catalogs %}
+                            <option value="{{ catalog.id }}">{{ catalog.name }}</option>
+                            {% endfor %}
+                        </select>
+                        <button type="submit" class="btn btn-outline-secondary">Wybierz</button>
+                    </form>
+                </div>
+
+                <div class="col-2 action-buttons">
+                    <a href="/add_catalog">
+                        <button type="button" class="btn btn-secondary">Dodaj listę</button>
+                    </a>
+                </div>
+
+                <div class="col-4">
+                    <form method="POST" action="/search" class="search-form">
+                        <input type="text" class="form-control" name="search_string" placeholder="Tytuł filmu">
+                        <button class="btn btn-outline-secondary" type="submit">Szukaj</button>
+                    </form>
+                </div>
+
+                <div class="col-2 action-buttons">
+                    <a href="/add_film">
+                        <button type="button" class="btn btn-secondary">Dodaj film</button>
+                    </a>
+                </div>
+            </div>
+
+            <div class="overflow-auto my-4">
+                {% if catalog.name == 'Wszystkie' %}
+                {% for film in films %}
+                {% if search_string == None or search_string in film.title %}
+                <div class="film-container">
+                    <img src="{{ film.album }}" alt="album">
+                    <div class="film-details">
+                        <h3>{{ film.title }} by {{ film.director }}</h3>
+                        <h5>{{ film.year }} {{ film.country }}</h5>
+                        {{ film.description }}
+                    </div>
+                    <div class="film-rating">
+                        <h3>OCENA</h3>
+                        <h4>{{ film.avg_grade }} / 10</h4>
+                        <form method="POST" action="/film_page">
+                            <button type="submit" class="btn btn-secondary film-button" value="{{ film.id }}"
+                                name="film_butt">Strona filmu</button>
+                        </form>
+                    </div>
+                </div>
+                {% endif %}
+                {% endfor %}
+                {% else %}
+                {% for film in catalog %}
+                <div class="film-container">
+                    <img src="{{ film.album }}" alt="album">
+                    <div class="film-details">
+                        <h3>{{ film.title }} by {{ film.director }}</h3>
+                        <h5>{{ film.year }} {{ film.country }}</h5>
+                        {{ film.description }}
+                    </div>
+                    <div class="film-rating">
+                        <h3>OCENA</h3>
+                        <h4>{{ film.avg_grade }} / 10</h4>
+                        <form method="POST" action="/film_page">
+                            <button type="submit" class="btn btn-secondary film-button" value="{{ film.id }}"
+                                name="film_butt">Strona filmu</button>
+                        </form>
+                    </div>
+                </div>
+                {% endfor %}
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</body>
+
+</html>

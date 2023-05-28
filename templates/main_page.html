@@ -6,150 +6,197 @@
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.2.3/dist/css/bootstrap.min.css" rel="stylesheet">
-    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.2.3/dist/js/bootstrap.bundle.min.js"></script>
+    <style>
+        body {
+            background-color: rgb(169, 169, 169);
+            overflow-x: hidden;
+        }
+        
+        .title-bar {
+            background-color: rgb(121, 121, 121);
+            height: 15vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        
+        .title-bar h1 {
+            margin: 0;
+        }
+        
+        .sidebar {
+            background-color: rgb(143, 143, 143);
+            text-align: center;
+            height: 82vh;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+        }
+        
+        .sidebar h4,
+        .sidebar h5 {
+            margin: 0;
+        }
+        
+        .content {
+            padding-left: 3vw;
+        }
+        
+        .form-search {
+            display: flex;
+            align-items: center;
+            margin-bottom: 1vh;
+        }
+        
+        .form-search input[type="text"] {
+            width: 100%;
+        }
+        
+        .film-card {
+            background-color: rgb(235, 235, 235);
+            height: 26vh;
+            margin: 0 3px 6px;
+            display: flex;
+            justify-content: space-between;
+        }
+        
+        .film-card img {
+            height: 100%;
+        }
+        
+        .film-info {
+            width: 55vw;
+            padding: 0 5px;
+            overflow: hidden;
+        }
+        
+        .film-info h3,
+        .film-info h5 {
+            margin: 0;
+        }
+        
+        .film-actions {
+            width: 10vw;
+            padding: 0 5px;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+        }
+        
+        .film-actions h3 {
+            padding-top: 4vh;
+            margin: 0;
+        }
+    </style>
 </head>
 
-<body style="background-color: rgb(169, 169, 169); overflow-x: hidden; overflow-y: hidden;">
-    <div class="row" style="background-color: rgb(121, 121, 121); height: 15vh;">
-        <div class="container m-3 text-center" style="padding-top: 2vh;">
-            <h1>BAZA FILMÓW</h1>
-        </div>
+<body>
+    <div class="title-bar">
+        <h1>BAZA FILMÓW</h1>
     </div>
 
     <div class="row" style="height: 82vh;">
-        <div class="col-2" style="background-color: rgb(143, 143, 143); text-align: center;">
-            <div class="container" style="margin-top: 20vh;">
-
+        <div class="col-2 sidebar">
+            <div class="container">
                 <h4>{{logged_user.username}}</h4>
                 <h5>{{logged_user.name}} {{logged_user.surname}}</h5>
                 <h5>{{logged_user.rank}}</h5>
                 <h5>Recenzje: {{logged_user.no_review}}</h5>
-
             </div>
         </div>
 
-        <div class="col-10" style="padding-left: 3vw;">
-            <div class="row">
-
+        <div class="col-10 content">
+            <div class="row" style="margin-top: 3vh;">
                 <div class="col-4">
-
-                    <form method="POST" action="/select_catalog" style="width: 30vw; margin-top: 1vh;">
-                        <div class="input-group" style="width: 30vw; margin-left: 3vw;">
-
-                            <select name=catalog_id style="width: 20vw">
+                    <form method="POST" action="/select_catalog">
+                        <div class="input-group">
+                            <select name="catalog_id" class="form-select">
                                 <option value="Wszystkie" selected>Wszystkie</option>
                                 {% for catalog in logged_user.catalogs %}
-
-                                    <option value={{catalog.id}}>{{catalog.name}}</option>
-
+                                    <option value="{{catalog.id}}">{{catalog.name}}</option>
                                 {% endfor %}
                             </select>
-
                             <div class="input-group-append">
                                 <button class="btn btn-outline-secondary" type="submit">Wybierz</button>
                             </div>
                         </div>
                     </form>
-
                 </div>
 
                 <div class="col-2">
-
                     <div class="input-group-append">
                         <a href="/add_catalog">
-                            <button type="button" class="btn btn-secondary"
-                                style="width: 10vw; margin-top: 1vh; margin-left: 3vh;">Dodaj listę</button>
+                            <button type="button" class="btn btn-secondary">Dodaj listę</button>
                         </a>
                     </div>
                 </div>
 
                 <div class="col-4">
-
-                    <form method="POST" action="/search">
-                        <div class="input-group"
-                            style="width: 20vw; margin-left: 8vw; margin-top: 1vh; margin-bottom: 1vh;">
-
-                            <input type="text" class="form-control" name="search_string" placeholder="Tytuł filmu"
-                                aria-label="search_string" aria-describedby="basic-addon2">
-
-                            <div class="input-group-append">
-                                <button class="btn btn-outline-secondary" type="submit">Szukaj</button>
-                            </div>
-
+                    <form method="POST" action="/search" class="form-search">
+                        <input type="text" class="form-control" name="search_string" placeholder="Tytuł filmu"
+                            aria-label="search_string" aria-describedby="basic-addon2">
+                        <div class="input-group-append">
+                            <button class="btn btn-outline-secondary" type="submit">Szukaj</button>
                         </div>
                     </form>
                 </div>
 
                 <div class="col-2">
-
                     <div class="input-group-append">
                         <a href="/add_film">
-                            <button type="button" class="btn btn-secondary"
-                                style="width: 10vw; margin-top: 1vh; margin-left: 3vh;">Dodaj film</button>
+                            <button type="button" class="btn btn-secondary">Dodaj film</button>
                         </a>
                     </div>
                 </div>
             </div>
 
-            <div class="overflow-auto my-4"
-                style="background-color: rgb(216, 216, 216); max-width: 80vw; max-height: 79vh;">
+            <div class="overflow-auto my-4">
                 {% if catalog.name == Wszystkie %}
                 {% for film in films %}
                 {% if search_string == None or search_string in film.title %}
-                <div class="mx-3 my-3" style="height: 26vh; background-color: rgb(235, 235, 235);">
-
-                    <div class="mx-1 my-1" style="height: 25vh; width: 10vw; float: left;">
-                        <img src={{film.album}} width="190vw" height="235vh" title="album">
+                <div class="film-card">
+                    <div style="width: 10vw;">
+                        <img src="{{film.album}}" alt="album">
                     </div>
-
-                    <div class="mx-1 my-1" style="height: 25vh; width: 55vw; float: left;">
+                    <div class="film-info">
                         <h3>{{film.title}} by {{film.director}}</h3>
                         <h5>{{film.year}} {{film.country}}</h5>
-                        {{film.description}}
+                        <p>{{film.description}}</p>
                     </div>
-
-                    <div class="mx-1 my-1 text-center" style="height: 25vh; width: 10vw; float: left;">
-                        <h3 style="padding-top: 4vh;">OCENA</h3>
+                    <div class="film-actions">
+                        <h3>OCENA</h3>
                         <h4>{{'%0.1f' % film.avg_grade|float}} / 10</h4>
-
                         <form method="POST" action="/film_page">
-                            <button type="submit" class="btn btn-secondary" value={{film.id}} name="film_butt">Strona filmu</button>
+                            <button type="submit" class="btn btn-secondary" value="{{film.id}}"
+                                name="film_butt">Strona filmu</button>
                         </form>
-
                     </div>
                 </div>
                 {% endif %}
                 {% endfor %}
-
                 {% else %}
                 {% for film in catalog %}
-                <div class="mx-3 my-3" style="height: 26vh; background-color: rgb(235, 235, 235);">
-
-                    <div class="mx-1 my-1" style="height: 25vh; width: 10vw; float: left;">
-                        <img src={{film.album}} width="190vw" height="235vh" title="album">
+                <div class="film-card">
+                    <div style="width: 10vw;">
+                        <img src="{{film.album}}" alt="album">
                     </div>
-
-                    <div class="mx-1 my-1" style="height: 25vh; width: 55vw; float: left;">
+                    <div class="film-info">
                         <h3>{{film.title}} by {{film.director}}</h3>
                         <h5>{{film.year}} {{film.country}}</h5>
-                        {{film.description}}
+                        <p>{{film.description}}</p>
                     </div>
-
-                    <div class="mx-1 my-1 text-center" style="height: 25vh; width: 10vw; float: left;">
-                        <h3 style="padding-top: 4vh;">OCENA</h3>
+                    <div class="film-actions">
+                        <h3>OCENA</h3>
                         <h4>{{'%0.1f' % film.avg_grade|float}} / 10</h4>
-
                         <form method="POST" action="/film_page">
-                            <button type="submit" class="btn btn-secondary" value={{film.id}} name="film_butt">Strona
-                                filmu</button>
+                            <button type="submit" class="btn btn-secondary" value="{{film.id}}"
+                                name="film_butt">Strona filmu</button>
                         </form>
-
                     </div>
                 </div>
                 {% endfor %}
                 {% endif %}
-
-
             </div>
         </div>
     </div>
