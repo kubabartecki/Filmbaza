@@ -8,12 +8,12 @@
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.2.3/dist/css/bootstrap.min.css" rel="stylesheet">
     <style>
         body {
-            background-color: rgb(169, 169, 169);
+            background-color: #f2f2f2;
             overflow-x: hidden;
         }
         
         .title-bar {
-            background-color: rgb(121, 121, 121);
+            background-color: #333333;
             height: 15vh;
             display: flex;
             align-items: center;
@@ -21,23 +21,21 @@
         }
         
         .title-bar h1 {
-            margin: 0;
+            color: #ffffff;
+            font-size: 2.5rem;
         }
         
         .sidebar {
-            background-color: rgb(143, 143, 143);
+            background-color: #707070;
             text-align: center;
-            height: 82vh;
             display: flex;
             flex-direction: column;
-            justify-content: center;
             align-items: center;
+            justify-content: flex-start;
+            padding-top: 10vh;
+            min-height: 648px;
         }
         
-        .sidebar h4,
-        .sidebar h5 {
-            margin: 0;
-        }
         
         .content {
             padding-left: 3vw;
@@ -54,11 +52,15 @@
         }
         
         .film-card {
-            background-color: rgb(235, 235, 235);
-            height: 26vh;
-            margin: 0 3px 6px;
             display: flex;
+            align-items: center;
             justify-content: space-between;
+            background-color: #ffffff;
+            border-radius: 6px;
+            margin: 10px 0;
+            padding: 10px;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+            overflow: hidden;
         }
         
         .film-card img {
@@ -66,9 +68,9 @@
         }
         
         .film-info {
-            width: 55vw;
-            padding: 0 5px;
-            overflow: hidden;
+            flex-grow: 1;
+            margin-left: 10px;
+            margin-right: 20px;
         }
         
         .film-info h3,
@@ -77,17 +79,52 @@
         }
         
         .film-actions {
-            width: 10vw;
-            padding: 0 5px;
-            display: flex;
-            flex-direction: column;
-            justify-content: center;
+            text-align: center;
+            width: 125px;
+            align-self: right;
         }
         
         .film-actions h3 {
             padding-top: 4vh;
             margin: 0;
         }
+
+        .button-submit {
+            margin-left: 0.3vw;
+        }
+
+        .button-film {
+            width: 115px;
+        }
+
+        .image {
+            max-width: 150px;
+        }
+
+        .header h1 {
+            color: #ffffff;
+            font-size: 2.5rem;
+        }
+
+        .sidebar h4,
+        .sidebar h5 {
+            color: #ffffff;
+            margin: 0;
+        }
+        
+        @keyframes fadeIn {
+            0% {
+                opacity: 0;
+            }
+            100% {
+                opacity: 1;
+            }
+        }
+
+        .film-card {
+            animation: fadeIn 0.9s ease-in-out;
+        }
+    </style>
     </style>
 </head>
 
@@ -96,7 +133,7 @@
         <h1>BAZA FILMÓW</h1>
     </div>
 
-    <div class="row" style="height: 82vh;">
+    <div class="row">
         <div class="col-2 sidebar">
             <div class="container">
 
@@ -114,13 +151,13 @@
         <div class="col-10 content">
 
             <form method="POST" action="/search">
-                <div class="input-group" style="width: 20vw; margin-left: 30vw; margin-top: 3vh;">
+                <div class="input-group" style="width: 20vw; margin-left: 30vw; margin-top: 1vh;">
 
-                    <input type="text" class="form-control" name="search_string" placeholder="Tytuł"
+                    <input type="text" class="form-control" name="search_string" placeholder="Tytuł filmu"
                         aria-label="search_string" aria-describedby="basic-addon2">
 
                     <div class="input-group-append">
-                        <button class="btn btn-outline-secondary" type="submit">Szukaj</button>
+                        <button class="btn btn-outline-secondary button-submit" type="submit">Szukaj</button>
                     </div>
 
                 </div>
@@ -129,10 +166,8 @@
             <div class="overflow-auto my-4">
                 {% for film in films %}
                 {% if search_string == None or search_string in film.title %}
-                <div class="film-card">
-                    <div style="width: 10vw;">
-                        <img src="{{film.album}}" alt="album">
-                    </div>
+                <div class="film-card">                    
+                    <img src="{{film.album}}" alt="album">                    
                     <div class="film-info">
                         <h3>{{film.title}} by {{film.director}}</h3>
                         <h5>{{film.year}} {{film.country}}</h5>
@@ -142,7 +177,7 @@
                         <h3>OCENA</h3>
                         <h4>{{'%0.1f' % film.avg_grade|float}} / 10</h4>
                         <form method="POST" action="/film_page">
-                            <button type="submit" class="btn btn-secondary" value="{{film.id}}"
+                            <button type="submit" class="btn btn-secondary button-film" value="{{film.id}}"
                                 name="film_butt">Strona filmu</button>
                         </form>
                     </div>
